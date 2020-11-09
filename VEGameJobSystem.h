@@ -1,6 +1,7 @@
 #ifndef VEGAMEJOBSYSTEM_H
 #define VEGAMEJOBSYSTEM_H
 
+
 /**
 *
 * \file
@@ -11,6 +12,7 @@
 * The library is a single include file, and can be used under MIT license.
 *
 */
+
 
 #include <iostream>
 #include <fstream>
@@ -33,27 +35,24 @@
 #include <string>
 #include <sstream>
 
-
 #if(defined(_MSC_VER))
     #include <memory_resource>
     namespace n_exp = std::experimental;
     namespace n_pmr = std::pmr;
 #elif(defined(__clang__))
-    #include <pthread.h>
     #include <experimental/coroutine>
     #include <experimental/memory_resource>
     #include <experimental/vector>
     namespace n_exp = std::experimental;
     namespace n_pmr = std::experimental::pmr;
-
 #elif(defined(__GNUC__))
-    #include <pthread.h>
     #include <coroutine>
     #include <memory_resource>
     namespace n_exp = std;
     namespace n_pmr = std::pmr;
 #else
 #endif
+
 
 namespace vgjs {
 
@@ -310,7 +309,7 @@ namespace vgjs {
         const uint32_t                              c_queue_capacity = 100; ///<save at most N Jobs for recycling
 
     private:
-        n_pmr::memory_resource*                     m_mr;                   ///<use to allocate/deallocate Jobs
+        n_pmr::memory_resource*                  m_mr;                   ///<use to allocate/deallocate Jobs
         std::vector<std::thread>	                m_threads;	            ///<array of thread structures
         std::atomic<uint32_t>   		            m_thread_count = 0;     ///<number of threads in the pool
         std::atomic<bool>                           m_terminated = false;   ///<flag set true when the last thread has exited
@@ -322,7 +321,7 @@ namespace vgjs {
         std::vector<JobQueue<Job_base>>             m_local_queues;	        ///<each thread has its own Job queue, multiple produce, single consume
         JobQueue<Job>                               m_recycle;              ///<save old jobs for recycling
         JobQueue<Job>                               m_delete;               ///<save old jobs for recycling
-        n_pmr::vector<n_pmr::vector<JobLog>>	    m_logs;				    ///< log the start and stop times of jobs
+        n_pmr::vector<n_pmr::vector<JobLog>>	m_logs;				    ///< log the start and stop times of jobs
         bool                                        m_logging = false;      ///< if true then jobs will be logged
         std::map<int32_t, std::string>              m_types;                ///<map types to a string for logging
         std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time = std::chrono::high_resolution_clock::now();	//time when program started
