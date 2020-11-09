@@ -32,14 +32,14 @@
 #include <chrono>
 #include <string>
 #include <sstream>
-#include <pthread.h>
+
 
 #if(defined(_MSC_VER))
-    #include <coroutine>
     #include <memory_resource>
     namespace n_exp = std::experimental;
-    namespace n_pmr = std::experimental::pmr;
+    namespace n_pmr = std::pmr;
 #elif(defined(__clang__))
+    #include <pthread.h>
     #include <experimental/coroutine>
     #include <experimental/memory_resource>
     #include <experimental/vector>
@@ -47,6 +47,7 @@
     namespace n_pmr = std::experimental::pmr;
 
 #elif(defined(__GNUC__))
+    #include <pthread.h>
     #include <coroutine>
     #include <memory_resource>
     namespace n_exp = std;

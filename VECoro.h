@@ -19,10 +19,9 @@
 #include <assert.h>
 
 #if(defined(_MSC_VER))
-    #include <coroutine>
     #include <memory_resource>
     namespace n_exp = std::experimental;
-    namespace n_pmr = std::experimental::pmr;
+    namespace n_pmr = std::pmr;
 #elif(defined(__clang__))
     #include <experimental/coroutine>
     #include <experimental/memory_resource>
