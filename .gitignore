@@ -1,4 +1,6 @@
 main
 perf.data
 perf.data.old
-/x64/Release
+/x64/
+/.vs/PraktikumVGJS/v16/ipch
+/.vs/PraktikumVGJS/v16/Browse.VS.db
