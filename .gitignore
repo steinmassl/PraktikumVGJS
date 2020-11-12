@@ -4,3 +4,7 @@ perf.data.old
 /x64/
 /.vs/PraktikumVGJS/v16/ipch
 /.vs/PraktikumVGJS/v16/Browse.VC.db
+/.vs/PraktikumVGJS/v16/TestStore/
+/.vs/ProjectSettings.json
+/.vs/VSWorkspaceState.json
+/.vs/slnx.sqlite

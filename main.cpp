@@ -23,7 +23,7 @@ void run(int n) {
 using namespace vgjs;
 int main() {
 
-    int n = 1000;
+    int n = 500;
 
 
     JobSystem::instance();

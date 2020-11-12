@@ -1,44 +1,26 @@
-
 #include <iostream>
-#include <iomanip>
-#include <stdlib.h>
-#include <functional>
-#include <string>
-#include <algorithm>
-#include <chrono>
 
 #include "VEGameJobSystem.h"
 #include "benchmark.h"
-
-namespace coro {
-	void test();
-}
 
 namespace func {
 	void test();
 }
 
-namespace mixed {
+namespace coro {
 	void test();
 }
 
-namespace docu {
-	void test(int);
-}
 
 
-void driver( int n ) {
+void run(int n) {
+	vgjs::schedule(std::bind(func::test));
+	vgjs::schedule(std::bind(coro::test));
 
-	vgjs::schedule( std::bind(coro::test) );
-	vgjs::schedule (std::bind(func::test) );
-	vgjs::schedule(std::bind(mixed::test) );
-
-	if (n <= 1) {
-		vgjs::continuation([]() { std::cout << "terminate()\n";  vgjs::terminate(); } );
-	}
-	else {
-		vgjs::continuation([=]() { std::cout << "driver(" << n << ")\n";  driver(n - 1); } );
-	}
+	if (n <= 1)
+		vgjs::continuation([]() {vgjs::terminate(); });
+	else
+		vgjs::continuation([=]() {run(n - 1); });
 }
 
 static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
@@ -49,8 +31,7 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 		JobSystem::instance();
 		//enable_logging();
 
-		schedule([=]() { driver(state.range(0)); });
-		//schedule([=]() {docu::test(state.range(0)); });
+		schedule(std::bind(run, state.range(0)));
 
 		wait_for_termination();
 
@@ -58,7 +39,7 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 	}
 }
 
-int n = 50;		
+int n = 500;		
 
 BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Arg(n);
 //BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime()->Arg(n);
