@@ -9,3 +9,4 @@ perf.data.old
 /.vs/VSWorkspaceState.json
 /.vs/slnx.sqlite
 log.json
+/external/benchmark/
