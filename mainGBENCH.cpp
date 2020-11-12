@@ -11,8 +11,6 @@ namespace coro {
 	void test();
 }
 
-
-
 void run(int n) {
 	vgjs::schedule(std::bind(func::test));
 	vgjs::schedule(std::bind(coro::test));

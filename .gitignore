@@ -8,3 +8,4 @@ perf.data.old
 /.vs/ProjectSettings.json
 /.vs/VSWorkspaceState.json
 /.vs/slnx.sqlite
+log.json

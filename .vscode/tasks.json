@@ -6,17 +6,28 @@
 			"label": "C/C++: g++ build active file",
 			"command": "/usr/bin/g++",
 			"args": [
-				"${workspaceFolder}/main.cpp",
+				"${workspaceFolder}/mainGBENCH.cpp",
 				"${workspaceFolder}/func.cpp",
 				"${workspaceFolder}/coro.cpp",
+				
+				
+				"-I/usr/local/include/benchmark",
+				"-L/usr/local/lib",
+				"-lbenchmark",
+				"-lbenchmark_main",
+				
+				
 				"-o",
 				"${workspaceFolder}/main",
+				
 				"-std=c++20",
 				"-fcoroutines",
+				"-fconcepts",
 				"-O2",
 				"-g",
 				"-pthread"
 			],
+			
 			"options": {
 				"cwd": "/usr/bin"
 			},
