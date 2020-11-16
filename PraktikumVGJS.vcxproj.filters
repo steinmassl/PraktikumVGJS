@@ -24,6 +24,12 @@
     <ClCompile Include="mainGBENCH.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mandelbrotFunc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mandelbrotCoro.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h">

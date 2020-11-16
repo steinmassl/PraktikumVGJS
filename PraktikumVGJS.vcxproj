@@ -154,6 +154,8 @@
     <ClCompile Include="coro.cpp" />
     <ClCompile Include="func.cpp" />
     <ClCompile Include="mainGBENCH.cpp" />
+    <ClCompile Include="mandelbrotCoro.cpp" />
+    <ClCompile Include="mandelbrotFunc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h" />
