@@ -7,8 +7,8 @@ using namespace vgjs;
 
 namespace mandelbrotFunc {
 	
-	const int WIDTH = 1000;					
-	const int HEIGHT = 1000;
+	const int WIDTH = 5000;					
+	const int HEIGHT = 5000;
 
 	const int MAX_ITERATIONS = 50;			//maximum number of iterations per pixel
 
@@ -45,11 +45,9 @@ namespace mandelbrotFunc {
 		}
 		if (iterations < MAX_ITERATIONS) {
 			pixels[y * WIDTH + x] = (255*iterations)/(MAX_ITERATIONS-1);							//unstable points - add color gradient
-			//std::cout << "255" << std::endl;
 		}
 		else {
 			pixels[y * WIDTH + x] = 0;																//stable points
-			//std::cout << "0" << std::endl;
 		}
 	}
 	

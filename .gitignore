@@ -10,3 +10,5 @@ perf.data.old
 /.vs/slnx.sqlite
 log.json
 /external/benchmark/
+mandelbrotFunc.ppm
+mandelbrotCoro.ppm
