@@ -27,7 +27,7 @@ namespace mandelbrotCoro {
 				}
 			}
 			mandelbrotImage.close();
-			std::cout << "End Mandelbrot" << std::endl;
+			std::cout << "End MandelbrotCoro" << std::endl;
 		}
 		else
 			std::cout << "File error" << std::endl;
@@ -96,7 +96,7 @@ namespace mandelbrotCoro {
 	}
 
 	void test() {
-		std::cout << "Start Mandelbrot" << std::endl;
+		std::cout << "Starting MandelbrotCoro" << std::endl;
 		schedule(mandelbrot());
 	}
 }

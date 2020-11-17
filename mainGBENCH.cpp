@@ -22,8 +22,8 @@ namespace mandelbrotCoro {
 void run(int n) {
 	//vgjs::schedule(std::bind(func::test));
 	//vgjs::schedule(std::bind(coro::test));
-	//vgjs::schedule(std::bind(mandelbrotFunc::test));
-	vgjs::schedule(std::bind(mandelbrotCoro::test));
+	vgjs::schedule(std::bind(mandelbrotFunc::test));
+	//vgjs::schedule(std::bind(mandelbrotCoro::test));
 
 	if (n <= 1)
 		vgjs::continuation([]() {vgjs::terminate(); });
