@@ -7,8 +7,8 @@ using namespace vgjs;
 
 namespace mandelbrotFunc {
 	
-	const int WIDTH = 5000;					
-	const int HEIGHT = 5000;
+	constexpr int WIDTH = 5000;					
+	constexpr int HEIGHT = 5000;
 
 	const int MAX_ITERATIONS = 50;			//maximum number of iterations per pixel
 
