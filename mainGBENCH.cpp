@@ -19,11 +19,16 @@ namespace mandelbrotCoro {
 	void test();
 }
 
+namespace mctsFunc {
+	void test();
+}
+
 void run(int n) {
 	//vgjs::schedule(std::bind(func::test));
 	//vgjs::schedule(std::bind(coro::test));
-	vgjs::schedule(std::bind(mandelbrotFunc::test));
+	//vgjs::schedule(std::bind(mandelbrotFunc::test));
 	//vgjs::schedule(std::bind(mandelbrotCoro::test));
+	vgjs::schedule(std::bind(mctsFunc::test));
 
 	if (n <= 1)
 		vgjs::continuation([]() {vgjs::terminate(); });
@@ -36,12 +41,13 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 	for (auto _ : state) {
 		// This code gets timed
 		
-		JobSystem::instance();
+		//JobSystem::instance();
 		//enable_logging();
 
-		schedule(std::bind(run, state.range(0)));
+		//schedule(std::bind(run, state.range(0)));
+		mctsFunc::test();
 
-		wait_for_termination();
+		//wait_for_termination();
 
 		//std::cout << "Exit\n";
 	}
