@@ -41,13 +41,12 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 	for (auto _ : state) {
 		// This code gets timed
 		
-		//JobSystem::instance();
+		JobSystem::instance();
 		//enable_logging();
 
-		//schedule(std::bind(run, state.range(0)));
-		mctsFunc::test();
+		schedule(std::bind(run, state.range(0)));
 
-		//wait_for_termination();
+		wait_for_termination();
 
 		//std::cout << "Exit\n";
 	}
@@ -55,9 +54,9 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 
 int n = 1;		
 
-BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Arg(n);
-//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime()->Arg(n);
-//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kNanosecond)->MeasureProcessCPUTime()->Arg(n);
+BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Arg(n);		//Milli
+//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime()->Arg(n);		//Micro
+//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kNanosecond)->MeasureProcessCPUTime()->Arg(n);		//Nano
 //BENCHMARK_MAIN();
 
 

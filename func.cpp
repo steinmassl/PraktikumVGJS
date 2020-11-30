@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include "VEGameJobSystem.h"
+
 using namespace vgjs;
 
 namespace func {

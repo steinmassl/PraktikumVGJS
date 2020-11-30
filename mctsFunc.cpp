@@ -1,25 +1,45 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include "VEGameJobSystem.h"
+
+using namespace vgjs;
 
 namespace mctsFunc {
 
+
+
 	//Tic Tac Toe game to test MCTS
-	struct Game {
-		static constexpr int DEFAULT_BOARD_SIZE = 10;
+	class Game {
+	public:
+		static constexpr int DEFAULT_BOARD_SIZE = 5;
 		static constexpr int IN_PROGRESS = -1;
 		static constexpr int DRAW = 0;
 		static constexpr int P1 = 1;
 		static constexpr int P2 = 2;
 
+		//std::vector<std::vector<short>> game_values;
+
 		short game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};		//initialize the game board with zeroes
 
-		//put player number into selected field marking it for this player
+		/*
+		Game() {
+			game_values.resize(DEFAULT_BOARD_SIZE);
+			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+				game_values[i].resize(DEFAULT_BOARD_SIZE);
+			}
+		}
+		*/
+		bool operator==(const Game& other) const {
+			return !memcmp(game_values, other.game_values, sizeof(short) * DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE);
+		}
+
+		//Put player number into selected field marking it for this player
 		void performMove(int player, std::pair<int, int> pos) {
 			game_values[pos.first][pos.second] = player;
 		}
 
-		// get a vector of coordinates with positions on the game board that have not yet been claimed by a player
+		//Get a vector of coordinates with positions on the game board that have not yet been claimed by a player
 		std::vector<std::pair<int, int>> getEmptyPositions() {
 			std::vector<std::pair<int, int>> empty_positions;
 			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
@@ -31,7 +51,7 @@ namespace mctsFunc {
 			return empty_positions;
 		}
 
-		//check if there is an alignment that would win the game
+		//Check if there is an alignment that would win the game
 		int checkForWin(int* row) {
 			bool is_equal = true;
 			int previous = row[0];
@@ -48,7 +68,7 @@ namespace mctsFunc {
 				return 0;
 		}
 
-		//check whether a player has won the game or a draw occured
+		//Check whether a player has won the game or a draw occured
 		int checkStatus() {
 			int max_index = DEFAULT_BOARD_SIZE - 1;
 			int diag_1[DEFAULT_BOARD_SIZE] = {};
@@ -90,7 +110,7 @@ namespace mctsFunc {
 				return DRAW;										//no win and nothing to do -> Draw
 		}
 
-		//print the current status of the board
+		//Print the current status of the board
 		void print() {
 			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
 				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
@@ -99,9 +119,33 @@ namespace mctsFunc {
 				std::cout << std::endl;
 			}
 		}
+
+		struct GameHasher {
+			std::size_t operator()(const Game& game) const {
+				using std::size_t;
+				using std::hash;
+
+				size_t res = 0;
+				for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+					for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+						res = res * 314159 + game.game_values[i][j];
+					}
+				}
+				return res;
+			}
+		};
 	};
 
-	//a struct carrying information relevant to the MCTS algorithm - state of the game at a specific point
+
+
+
+
+
+
+
+
+
+	//A struct carrying information relevant to the MCTS algorithm - state of the game at a specific point
 	struct State {
 		Game game;
 		unsigned int player = 0;		//the player who made the move that resulted in this state
@@ -112,13 +156,13 @@ namespace mctsFunc {
 
 		State(Game game) : game(game) {}
 
-		//performs a random move from all available moves
+		//Performs a random move from all available moves
 		void randomPlay() {
 			std::vector<std::pair<int, int>> available_positions = game.getEmptyPositions();
 			game.performMove(player, available_positions.at(rand() % available_positions.size()));
 		}
 
-		//get a list of all possible states that can be achieved from the current state
+		//Get a list of all possible states that can be achieved from the current state
 		std::vector<State> getAllPossibleStates() {
 			std::vector<std::pair<int, int>> available_positions = game.getEmptyPositions();
 			std::vector<State> possible_states;
@@ -131,11 +175,20 @@ namespace mctsFunc {
 			return possible_states;
 		}
 
-		//switches P1 and P2
+		//Toggle between two active players
 		void togglePlayer() {
 			player = 3 - player;
 		}
 	};
+
+
+
+
+
+
+
+
+
 
 	//Node struct which contains state object and links to parent/child nodes
 	struct Node {
@@ -172,7 +225,7 @@ namespace mctsFunc {
 
 		//Find the child node of current node with the largest UCT value
 		Node* findBestChildNodeWithUTC() {
-			double largest_UCT = std::numeric_limits<double>::lowest();
+			double largest_UCT = std::numeric_limits<double>::lowest();				//initialize with lowest value
 			Node* best_node = nullptr;
 			for (auto child : children) {
 				double child_UCT = child->calculateUCT();
@@ -186,7 +239,7 @@ namespace mctsFunc {
 
 		//Select the child node with the highest overall score 
 		Node* getChildWithMaxScore() {
-			double largest_score = std::numeric_limits<double>::lowest();
+			double largest_score = std::numeric_limits<double>::lowest();			//initialize with lowest value
 			Node* best_node = nullptr;
 			for (auto child : children) {
 				if (child->state.score > largest_score) {
@@ -198,7 +251,9 @@ namespace mctsFunc {
 		}
 	};
 
-	//tree struct that provides a starting node
+
+
+	//Tree struct that provides a starting node
 	struct Tree {
 		Node root;
 
@@ -222,13 +277,16 @@ namespace mctsFunc {
 
 	
 
-	//use this class/function to test algorithm
+	//Monte Carlo Tree Search algorithm - accessor class
 	class MonteCarloTreeSearch {
-		static constexpr int WIN_SCORE = 10;
-		static constexpr int DRAW_SCORE = 5;
+		static constexpr int WIN_SCORE = 10;							//score awarded to nodes leading to win
+		static constexpr int DRAW_SCORE = 5;							//score awarded to nodes leading to draw
 		static constexpr int MAX_ITERATIONS = 1000;						//number of iterations of algorithm
-	
-		//Selection Phase - find suitable node to expand
+		static constexpr int NUM_TREES = 30;							//number of parallel trees to create when using root parallelization
+		Game results[NUM_TREES];										//results from individual trees when using parallelization
+		Game current_game_state;													//save result of algorithm and access in the following round
+
+		//Selection Phase - traverse tree and find suitable node to expand
 		Node* selectNode(Node* root) {
 			Node* current = root;
 			while (current->children.size() != 0) {
@@ -247,15 +305,15 @@ namespace mctsFunc {
 		}
 
 		//Rollout Phase - simulate rest of the game from a specific node
-		int rollout(Node* node, int& opponent) {
+		int rollout(Node* node, int opponent) {
 			Node* current_node = node;
 			State current_state = current_node->state;
 			int game_status = current_state.game.checkStatus();
-			if (game_status == opponent) {
+			if (game_status == opponent) {							//opponent won
 				current_node->parent->state.score = 0;
 				return game_status;
 			}
-			while (game_status == Game::IN_PROGRESS) {
+			while (game_status == Game::IN_PROGRESS) {				//play random moves until the game ends
 				current_state.togglePlayer();
 				current_state.randomPlay();
 				game_status = current_state.game.checkStatus();
@@ -268,21 +326,25 @@ namespace mctsFunc {
 			Node* current_node = node_to_explore;
 			while (current_node != nullptr) {
 				current_node->state.num_visits++;
-				if (current_node->state.player == rollout_result)
+				if (current_node->state.player == rollout_result)			//path won
 					current_node->state.score += WIN_SCORE;
-				else if (rollout_result == current_node->state.game.DRAW)
+				else if (rollout_result == current_node->state.game.DRAW)	//path led to draw
 					current_node->state.score += DRAW_SCORE;
 				current_node = current_node->parent;
 			}
 		}
 	
 	public:
-		Game findNextMove(Game game, int player) {
+
+		MonteCarloTreeSearch(Game game) : current_game_state(game) {}
+
+		//MCTS - find the best move from the current state of the game
+		void findNextMove(int player, int tree_num) {
 
 			int opponent = 3 - player;		//opponent of current player
-			Tree tree = Tree(game);
+			Tree tree = Tree(current_game_state);
 			Node* root = &tree.root;
-			root->state.player = opponent;	//opponent made last move
+			root->state.player = opponent;	//opponent made previous move
 			int num_iterations = 0;
 
 			//do this for a number of iterations / amount of time
@@ -308,33 +370,80 @@ namespace mctsFunc {
 			}
 
 			Node* winner_node = root->getChildWithMaxScore();		//pick best move for this round
-			winner_node->state.game.print();						//show board
-			return winner_node->state.game;							//return game / board
+			//winner_node->state.game.print();						//show board
+			results[tree_num] = winner_node->state.game;			//save game / board
 		}
+
+		//Find best move by creating multiple trees in parallel and merging all results
+		void findNextMoveWithRootParallelization(int player) {
+			for (int i = 0; i < NUM_TREES; i++) {
+				schedule([=]() {findNextMove(player, i); });
+			}
+			continuation([=]() {similarityVote();});
+		}
+
+		//Use simplified similarity vote to choose next move after parallelized search
+		void similarityVote() {
+			std::cout << "Similarity: ";
+			std::unordered_map<Game, int, Game::GameHasher> hash;
+			for (int i = 0; i < NUM_TREES; i++) {
+				hash[results[i]]++;
+			}
+			int max_count = 0;
+			Game res;
+			for (auto& ele : hash) {
+				if (ele.second > max_count) {
+					res = ele.first;
+					max_count = ele.second;
+				}
+			}
+			std::cout << max_count << " trees voted for this move" << std::endl;
+			current_game_state = res;
+		}
+
+		Game getCurrentGame() {
+			return current_game_state;
+		}
+
 	};
 
 
 
 
-	//test MCTS
+
+
+
+
+	Game tic_tac_toe_game = Game();
+	MonteCarloTreeSearch mcts(tic_tac_toe_game);
+	int player = Game::P1;
+	int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
+
+	void loopForEachRound(int n) {
+		schedule([]() {mcts.findNextMoveWithRootParallelization(player); });			//find move using MCTS with root parallelization
+
+		continuation([=]() {
+			mcts.getCurrentGame().print();
+			std::cout << "Number of moves: " << n + 1 << std::endl;
+			if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			//game is not over
+				player = 3 - player;													//toggle player
+				loopForEachRound(n + 1);												//next round
+			}
+		});
+		
+	}
+
+	//Test MCTS
 	void test() {
 
-		std::cout << "Starting MCTS Test" << std::endl;
-		Game game = Game();
-		MonteCarloTreeSearch mcts;
-		int player = Game::P1;
-		int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
+		std::cout << "Starting MCTS Test" << std::endl;	
 
-		for (int i = 0; i < total_moves; i++) {
-			game = mcts.findNextMove(game, player);
-			std::cout << "Number of moves: " << i+1 << std::endl;
-			if (game.checkStatus() != -1) {
-				break;
-			}
-			player = 3 - player;
-		}
-		int win_status = game.checkStatus();
-		std::cout << "Status: " << win_status << std::endl;
-		std::cout << "Ending MCTS Test" << std::endl;
+		schedule([]() {loopForEachRound(0); });
+										
+		continuation([]() {
+			int win_status = mcts.getCurrentGame().checkStatus();
+			std::cout << "Status: " << win_status << std::endl;
+			std::cout << "Ending MCTS Test" << std::endl;
+		});
 	}
 }

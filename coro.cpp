@@ -2,6 +2,7 @@
 #include <iostream>
 #include "VEGameJobSystem.h"
 #include "VECoro.h"
+
 using namespace vgjs;
 
 namespace coro {
