@@ -157,6 +157,7 @@
     <ClCompile Include="mandelbrotCoro.cpp" />
     <ClCompile Include="mandelbrotFunc.cpp" />
     <ClCompile Include="mctsFunc.cpp" />
+    <ClCompile Include="Game.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h" />
