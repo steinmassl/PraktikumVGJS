@@ -11,6 +11,7 @@
 				"${workspaceFolder}/coro.cpp",
 				"${workspaceFolder}/mandelbrotCoro.cpp",
 				"${workspaceFolder}/mandelbrotFunc.cpp",
+				"${workspaceFolder}/mctsFunc.cpp",
 
 
 				

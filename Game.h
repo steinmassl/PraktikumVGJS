@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 	//Tic Tac Toe game to test MCTS
 	class Game {
@@ -28,7 +29,7 @@
 
 		//Compare two games - necessary for std::unordered_map
 		bool operator==(const Game& other) const {
-			return !memcmp(game_values, other.game_values, sizeof(short) * DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE);
+			return !std::memcmp(game_values, other.game_values, sizeof(short) * DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE);
 		}
 
 		//Put player number into selected field marking it for this player
