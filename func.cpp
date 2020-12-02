@@ -14,7 +14,7 @@ namespace func {
         //do work
         volatile unsigned long x = 0;
         for(int i = 0; i < 1; i++) {
-            x = x + std::chrono::system_clock::now().time_since_epoch().count();
+            x = x + (unsigned long) std::chrono::system_clock::now().time_since_epoch().count();
             //std::cout << x << std::endl;
         }
         cnt++;

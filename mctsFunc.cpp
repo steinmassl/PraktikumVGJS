@@ -21,14 +21,15 @@ namespace mctsFunc {
 
 		//Performs a random move from all available moves
 		void randomPlay() {
-			std::vector<std::pair<int, int>> available_positions = game.getEmptyPositions();
+			std::vector<Game::Pos> available_positions(game.getEmptyPositions());
 			game.performMove(player, available_positions.at(rand() % available_positions.size()));
 		}
 
 		//Get a list of all possible states that can be achieved from the current state
 		std::vector<State> getAllPossibleStates() {
-			std::vector<std::pair<int, int>> available_positions = game.getEmptyPositions();
+			std::vector<Game::Pos> available_positions(game.getEmptyPositions());
 			std::vector<State> possible_states;
+			possible_states.reserve(game.num_empty_positions);
 			for (auto& pos : available_positions) {
 				State new_state = State(game);
 				new_state.player = 3 - player;
@@ -81,7 +82,7 @@ namespace mctsFunc {
 		Node* findBestChildNodeWithUTC() {
 			double largest_UCT = std::numeric_limits<double>::lowest();				//initialize with lowest value
 			Node* best_node = nullptr;
-			for (auto child : children) {
+			for (auto& child : children) {
 				double child_UCT = child->calculateUCT();
 				if (child_UCT > largest_UCT) {
 					largest_UCT = child_UCT;
@@ -95,7 +96,7 @@ namespace mctsFunc {
 		Node* getChildWithMaxScore() {
 			double largest_score = std::numeric_limits<double>::lowest();			//initialize with lowest value
 			Node* best_node = nullptr;
-			for (auto child : children) {
+			for (auto& child : children) {
 				if (child->state.score > largest_score) {
 					largest_score = child->state.score;
 					best_node = child;
@@ -135,10 +136,10 @@ namespace mctsFunc {
 	class MonteCarloTreeSearch {
 		static constexpr int WIN_SCORE = 10;							//score awarded to nodes leading to win
 		static constexpr int DRAW_SCORE = 5;							//score awarded to nodes leading to draw
-		static constexpr int MAX_ITERATIONS = 1000;						//number of iterations of algorithm
-		static constexpr int NUM_TREES = 10;							//number of parallel trees to create when using root parallelization
+		static constexpr int MAX_ITERATIONS = 500;						//number of iterations of algorithm
+		static constexpr int NUM_TREES = 16;							//number of parallel trees to create when using root parallelization
 		Game results[NUM_TREES];										//results from individual trees when using parallelization
-		Game current_game_state;													//save result of algorithm and access in the following round
+		Game current_game;													//save result of algorithm and access in the following round
 
 		//Selection Phase - traverse tree and find suitable node to expand
 		Node* selectNode(Node* root) {
@@ -152,9 +153,9 @@ namespace mctsFunc {
 		//Expansion Phase - expand node adding a child for every possible action
 		void expandNode(Node* node) {
 			std::vector<State> possibleStates = node->state.getAllPossibleStates();
+			node->children.reserve(possibleStates.size());
 			for (State& state : possibleStates) {
-				Node* new_node = new Node(state, node);
-				node->children.push_back(new_node);			//initialize children vector with amount of possible states
+				node->children.emplace_back(new Node(state,node));			//initialize children vector with amount of possible states
 			}
 		}
 
@@ -190,13 +191,13 @@ namespace mctsFunc {
 	
 	public:
 
-		MonteCarloTreeSearch(Game game) : current_game_state(game) {}
+		MonteCarloTreeSearch(Game game) : current_game(game) {}
 
 		//MCTS - find the best move from the current state of the game
 		void findNextMove(int player, int tree_num) {
 
 			int opponent = 3 - player;		//opponent of current player
-			Tree tree = Tree(current_game_state);
+			Tree tree = Tree(current_game);
 			Node* root = &tree.root;
 			root->state.player = opponent;	//opponent made previous move
 			int num_iterations = 0;
@@ -252,13 +253,12 @@ namespace mctsFunc {
 				}
 			}
 			std::cout << max_count << " trees voted for this move" << std::endl;
-			current_game_state = res;
+			current_game = res;
 		}
 
 		Game getCurrentGame() {
-			return current_game_state;
+			return current_game;
 		}
-
 	};
 
 
@@ -274,17 +274,17 @@ namespace mctsFunc {
 	int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
 
 	void loopForEachRound(int n) {
+		std::cout << "Player " << player << std::endl;
 		schedule([]() {mcts.findNextMoveWithRootParallelization(player); });			//find move using MCTS with root parallelization
 
 		continuation([=]() {
 			mcts.getCurrentGame().print();
-			std::cout << "Number of moves: " << n + 1 << std::endl;
+			std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
 			if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			//game is not over
 				player = 3 - player;													//toggle player
 				loopForEachRound(n + 1);												//next round
 			}
-		});
-		
+		});	
 	}
 
 	//Test MCTS

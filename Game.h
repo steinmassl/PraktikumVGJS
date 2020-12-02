@@ -1,16 +1,30 @@
+#ifndef GAME_H
+#define GAME_H
+
 #include <iostream>
 #include <vector>
 
 	//Tic Tac Toe game to test MCTS
 	class Game {
 	public:
-		static constexpr int DEFAULT_BOARD_SIZE = 5;
+		static constexpr int DEFAULT_BOARD_SIZE = 10;			//Board Dimensions
 		static constexpr int IN_PROGRESS = -1;
 		static constexpr int DRAW = 0;
 		static constexpr int P1 = 1;
 		static constexpr int P2 = 2;
 
-		short game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};		//initialize the game board with zeroes
+		short game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};			//initialize the game board with zeroes
+		short num_empty_positions = DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE;
+
+		//Board Position
+		struct Pos {
+			short first = 0;
+			short second = 0;
+
+			Pos() {}
+
+			Pos(short first, short second) : first(first), second(second) {}
+		};
 
 		//Compare two games - necessary for std::unordered_map
 		bool operator==(const Game& other) const {
@@ -18,17 +32,19 @@
 		}
 
 		//Put player number into selected field marking it for this player
-		void performMove(int player, std::pair<int, int> pos) {
+		void performMove(int player, Pos pos) {
 			game_values[pos.first][pos.second] = player;
+			num_empty_positions--;
 		}
 
 		//Get a vector of coordinates with positions on the game board that have not yet been claimed by a player
-		std::vector<std::pair<int, int>> getEmptyPositions() {
-			std::vector<std::pair<int, int>> empty_positions;
+		std::vector<Pos> getEmptyPositions() {
+			std::vector<Pos> empty_positions;
+			empty_positions.reserve(num_empty_positions);
 			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
 				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 					if (game_values[i][j] == 0)
-						empty_positions.push_back(std::make_pair(i, j));
+						empty_positions.emplace_back(Pos(i, j));
 				}
 			}
 			return empty_positions;
@@ -36,17 +52,17 @@
 
 		//Check if there is an alignment that would win the game
 		int checkForWin(int* row) {
-			bool is_equal = true;
-			int previous = row[0];
-			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-				if (previous != row[i]) {
-					is_equal = false;
+			bool aligned = true;
+			int current = row[0];
+			for (int i = 1; i < DEFAULT_BOARD_SIZE; i++) {
+				if (current != row[i] || current == 0) {
+					aligned = false;
 					break;
 				}
-				previous = row[i];
+				current = row[i];
 			}
-			if (is_equal && (previous > 0))
-				return previous;
+			if (aligned)
+				return current;
 			else
 				return 0;
 		}
@@ -54,24 +70,24 @@
 		//Check whether a player has won the game or a draw occured
 		int checkStatus() {
 			int max_index = DEFAULT_BOARD_SIZE - 1;
-			int diag_1[DEFAULT_BOARD_SIZE] = {};
-			int diag_2[DEFAULT_BOARD_SIZE] = {};
+			int diag_1[DEFAULT_BOARD_SIZE];
+			int diag_2[DEFAULT_BOARD_SIZE];
 
 			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-				int row[DEFAULT_BOARD_SIZE] = {};
+				int line[DEFAULT_BOARD_SIZE];
 				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
-					row[j] = game_values[i][j];
-				}
-				int col[DEFAULT_BOARD_SIZE] = {};
-				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
-					col[j] = game_values[j][i];
+					line[j] = game_values[i][j];
 				}
 
-				int row_win = checkForWin(row);						//check rows
+				int row_win = checkForWin(line);						//check rows
 				if (row_win != 0)
 					return row_win;
 
-				int col_win = checkForWin(col);						//check columns
+				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+					line[j] = game_values[j][i];
+				}
+
+				int col_win = checkForWin(line);						//check columns
 				if (col_win != 0)
 					return col_win;
 
@@ -79,7 +95,7 @@
 				diag_2[i] = game_values[max_index - i][i];
 			}
 
-			int diag_1_win = checkForWin(diag_1);					//check both diagonals
+			int diag_1_win = checkForWin(diag_1);						//check both diagonals
 			if (diag_1_win != 0)
 				return diag_1_win;
 
@@ -87,7 +103,7 @@
 			if (diag_2_win != 0)
 				return diag_2_win;
 
-			if (getEmptyPositions().size() > 0)
+			if (num_empty_positions > 0)
 				return IN_PROGRESS;									//no win - game continues
 			else
 				return DRAW;										//no win and nothing to do -> Draw
@@ -119,3 +135,5 @@
 			}
 		};
 	};
+
+#endif

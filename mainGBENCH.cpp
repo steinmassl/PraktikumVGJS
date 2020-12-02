@@ -23,12 +23,17 @@ namespace mctsFunc {
 	void test();
 }
 
+namespace mctsCoro {
+	void test();
+}
+
 void run(int n) {
 	//vgjs::schedule(std::bind(func::test));
 	//vgjs::schedule(std::bind(coro::test));
 	//vgjs::schedule(std::bind(mandelbrotFunc::test));
 	//vgjs::schedule(std::bind(mandelbrotCoro::test));
 	vgjs::schedule(std::bind(mctsFunc::test));
+	//vgjs::schedule(std::bind(mctsCoro::test));
 
 	if (n <= 1)
 		vgjs::continuation([]() {vgjs::terminate(); });
@@ -48,7 +53,7 @@ static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
 
 		wait_for_termination();
 
-		//std::cout << "Exit\n";
+		std::cout << "Exit\n";
 	}
 }
 
