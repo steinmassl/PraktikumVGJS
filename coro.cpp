@@ -2,44 +2,70 @@
 #include <iostream>
 #include "VEGameJobSystem.h"
 #include "VECoro.h"
+#include "benchmark.h"
 
 using namespace vgjs;
 
 namespace coro {
 
-    volatile std::atomic<uint32_t> cnt = 0;
+    //volatile std::atomic<uint32_t> cnt = 0;
+    int loops = 10000000;
 
-    Coro<> call(int n);
-
-    Coro<unsigned long> work(int n) {
+    void work() {
         //do work
         volatile unsigned long x = 0;
-        for(int i = 0; i < 1; i++) {
-            x =  x + (unsigned long) std::chrono::system_clock::now().time_since_epoch().count();
+        for (int i = 0; i < loops; i++) {
+            x = x + (unsigned long)std::chrono::system_clock::now().time_since_epoch().count();
             //std::cout << x << std::endl;
         }
-        cnt++;
-        if(n > 0) {
-            n_pmr::vector<Coro<>> vec;
-            vec.push_back(call(n - 1));
-            vec.push_back(call(n - 1));
-            co_await vec;
-
-        }
-        co_return x;
     }
 
-    Coro<> call(int n) {
-        //call Coro from Coro
-        co_await work(n);                
-        //std::cout << cnt << std::endl;
+    static void BM_Work(benchmark::State& state) {
+        for (auto _ : state) {
+            // This code gets timed
+            work();
+        }
+    }
+
+    Coro<> workCoro() {
+        work();
         co_return;
     }
 
+
+    Coro<> call(int num_jobs) {
+        n_pmr::vector<Coro<>> vec;
+
+        for (int i = 0; i < num_jobs; i++) {
+            vec.emplace_back(workCoro());
+        }
+        co_await vec;
+        vgjs::terminate();
+        co_return;
+    }
+
+    /*
     void test() {
         cnt = 0;
-        int n = 13;
+        int depth = 13;
 
-        schedule(call(n));
+        schedule(call(depth));
     }
+    */
+
+    static void BM_Test(benchmark::State& state) {
+        int num_threads = 16;
+        int num_jobs = 16;
+
+        JobSystem::instance(num_threads);
+        //enable_logging();
+
+        for (auto _ : state) {
+            schedule(call(num_jobs));
+            wait_for_termination();
+        }
+    }
+
+    BENCHMARK(BM_Work)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+    BENCHMARK(BM_Test)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Iterations({ 1 });
 }

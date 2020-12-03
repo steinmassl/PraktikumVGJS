@@ -17,6 +17,7 @@ namespace mandelbrotFunc {
 
 	//create ppm file and draw values into it
 	void draw() {
+		std::cout << "Drawing..." << std::endl;
 		std::ofstream mandelbrotImage("mandelbrotFunc.ppm");
 		if (mandelbrotImage.is_open()) {
 			mandelbrotImage << "P3\n" << WIDTH << " " << HEIGHT << " 255\n";		//PPM Header data
@@ -57,11 +58,11 @@ namespace mandelbrotFunc {
 				schedule([=]() {calculatePixel(j, i); });			//parallelise per pixel - what about iterations per pixel?
 			}
 		}
+		//continuation([]() {draw(); });				//start drawing
 	}
 
 	void test() {
 		std::cout << "Starting MandelbrotFunc" << std::endl;
 		schedule([]() {mandelbrot(); });
-		continuation([]() {draw(); });
 	}
 }

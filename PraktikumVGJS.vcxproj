@@ -156,6 +156,7 @@
     <ClCompile Include="mainGBENCH.cpp" />
     <ClCompile Include="mandelbrotCoro.cpp" />
     <ClCompile Include="mandelbrotFunc.cpp" />
+    <ClCompile Include="mctsCoro.cpp" />
     <ClCompile Include="mctsFunc.cpp" />
     <ClCompile Include="Game.h" />
   </ItemGroup>

@@ -2,11 +2,12 @@
 #include <math.h>
 #include <vector>
 #include "VEGameJobSystem.h"
+#include "VECoro.h"
 #include "Game.h"
 
 using namespace vgjs;
 
-namespace mctsFunc {
+namespace mctsCoro {
 
 	//A struct carrying information relevant to the MCTS algorithm - state of the game at a specific point
 	struct State {
@@ -64,11 +65,11 @@ namespace mctsFunc {
 				delete child;
 			}
 		}
-		
+
 
 		//Calculate UCT value of current Node
 		double calculateUCT() {
-			if (state.num_visits == 0)			
+			if (state.num_visits == 0)
 				return std::numeric_limits<double>::max();		//nodes that haven't been visited have initial UCT of infinity
 			return (state.score / state.num_visits) + 1.41 * sqrt(log(parent->state.num_visits) / state.num_visits);		//UCT calculation
 		}
@@ -128,9 +129,9 @@ namespace mctsFunc {
 
 
 
-	
 
-	
+
+
 
 	//Monte Carlo Tree Search algorithm
 	class MonteCarloTreeSearch {
@@ -157,7 +158,7 @@ namespace mctsFunc {
 			std::vector<State> possibleStates = node->state.getAllPossibleStates();
 			node->children.reserve(possibleStates.size());
 			for (State& state : possibleStates) {
-				node->children.emplace_back(new Node(state,node));			//initialize children vector with amount of possible states
+				node->children.emplace_back(new Node(state, node));			//initialize children vector with amount of possible states
 			}
 		}
 
@@ -190,13 +191,13 @@ namespace mctsFunc {
 				current_node = current_node->parent;
 			}
 		}
-	
+
 	public:
 
 		MonteCarloTreeSearch(Game game) : current_game(game) {}
 
 		//MCTS - find the best move from the current state of the game
-		void findNextMove(int player, int tree_num) {
+		Coro<> findNextMove(int player, int tree_num) {
 
 			int opponent = 3 - player;		//opponent of current player
 			Tree tree = Tree(current_game);
@@ -206,7 +207,7 @@ namespace mctsFunc {
 
 			//do this for a number of iterations / amount of time
 			while (num_iterations < MAX_ITERATIONS) {
-																					//MCTS Phases
+				//MCTS Phases
 
 				Node* promising_node = selectNode(root);							//Selection
 
@@ -229,18 +230,23 @@ namespace mctsFunc {
 			Node* winner_node = root->getChildWithMaxScore();		//pick best move for this round
 			//winner_node->state.game.print();						//show board
 			results[tree_num] = winner_node->state.game;			//save game / board
+			co_return;
 		}
 
 		//Find best move by creating multiple trees in parallel and merging all results
-		void findNextMoveWithRootParallelization(int player) {
+		Coro<> findNextMoveWithRootParallelization(int player) {
+			n_pmr::vector<Coro<>> trees;
+			trees.reserve(NUM_TREES);
 			for (int i = 0; i < NUM_TREES; i++) {
-				schedule([=]() {findNextMove(player, i); });
+				trees.emplace_back(findNextMove(player, i));
 			}
-			continuation([=]() {similarityVote();});
+			co_await trees;
+			co_await similarityVote();
+			co_return;
 		}
 
 		//Use simplified similarity vote to choose next move after parallelized search
-		void similarityVote() {
+		Coro<> similarityVote() {
 			std::cout << "Similarity: ";
 			std::unordered_map<Game, int, Game::GameHasher> hash;			//hash into map to efficiently find most frequent element
 			for (int i = 0; i < NUM_TREES; i++) {
@@ -256,6 +262,7 @@ namespace mctsFunc {
 			}
 			std::cout << max_count << " trees voted for this move" << std::endl;
 			current_game = res;
+			co_return;
 		}
 
 		Game getCurrentGame() {
@@ -275,27 +282,26 @@ namespace mctsFunc {
 	int player = Game::P1;
 	int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
 
-	void loopForEachRound(int n) {
+	Coro<> loopForEachRound(int n) {
 		std::cout << "Player " << player << std::endl;
-		schedule([]() {mcts.findNextMoveWithRootParallelization(player); });			//find move using MCTS with root parallelization
+		co_await mcts.findNextMoveWithRootParallelization(player);			//find move using MCTS with root parallelization
 
-		continuation([=]() {
-			mcts.getCurrentGame().print();
-			std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
-			if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			//game is not over
-				player = 3 - player;													//toggle player
-				loopForEachRound(n + 1);												//next round
-			}
-		});	
+		mcts.getCurrentGame().print();
+		std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
+		if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			//game is not over
+			player = 3 - player;													//toggle player
+			co_await loopForEachRound(n + 1);										//next round
+		}
+		co_return;
 	}
 
 	//Test MCTS
 	void test() {
 
-		std::cout << "Starting MCTS Test" << std::endl;	
+		std::cout << "Starting MCTS Test" << std::endl;
 
-		schedule([]() {loopForEachRound(0); });
-										
+		schedule(loopForEachRound(0));
+
 		continuation([]() {
 			int win_status = mcts.getCurrentGame().checkStatus();
 			std::cout << "Status: " << win_status << std::endl;

@@ -17,6 +17,7 @@ namespace mandelbrotCoro {
 
 	//create ppm file and write pixel values into it
 	Coro<> draw() {
+		std::cout << "Drawing..." << std::endl;
 		std::ofstream mandelbrotImage("mandelbrotCoro.ppm");
 		if (mandelbrotImage.is_open()) {
 			mandelbrotImage << "P3\n" << WIDTH << " " << HEIGHT << " 255\n";		//PPM Header data
@@ -91,7 +92,7 @@ namespace mandelbrotCoro {
 
 		co_await mandelbrotRecursive(0);		//start calculations recursively
 		//co_await mandelbrotLoop();			//start calculations 
-		co_await draw();						//start drawing
+		//co_await draw();						//start drawing
 		co_return;
 	}
 

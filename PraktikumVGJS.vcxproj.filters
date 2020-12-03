@@ -36,6 +36,9 @@
     <ClCompile Include="Game.h">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mctsCoro.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h">
