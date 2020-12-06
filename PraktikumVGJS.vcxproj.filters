@@ -33,10 +33,10 @@
     <ClCompile Include="mctsFunc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game.h">
+    <ClCompile Include="mctsCoro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mctsCoro.cpp">
+    <ClCompile Include="mctsGame.h">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

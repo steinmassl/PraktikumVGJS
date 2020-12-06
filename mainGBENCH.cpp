@@ -4,11 +4,12 @@
 #include "benchmark.h"
 
 namespace func {
-	void test();
+	void test(int,int);
+	void work(int);
 }
 
 namespace coro {
-	void test();
+	void test(int,int);
 }
 
 namespace mandelbrotFunc {
@@ -27,6 +28,17 @@ namespace mctsCoro {
 	void test();
 }
 
+// General Settings
+static constexpr int NUM_ITERATIONS = 1;
+static constexpr int NUM_THREADS = 4;
+
+// Func and Coro Test Settings
+static constexpr int NUM_JOBS = 4;
+static constexpr int NUM_LOOPS = 100000;
+
+//
+
+// Legacy
 void run(int n) {
 	//vgjs::schedule(std::bind(func::test));
 	//vgjs::schedule(std::bind(coro::test));
@@ -42,82 +54,95 @@ void run(int n) {
 }
 
 
-static void BM_Run(benchmark::State& state) {			//Benchmark wrapper function
-	
-	using namespace vgjs;
-	JobSystem::instance();
-	//enable_logging();
 
-	for (auto _ : state) {
-		// This code gets timed
-		schedule(std::bind(run, state.range(0)));
-		wait_for_termination();
-	}
-
-		std::cout << "Exit\n";
-}
 
 static void BM_All(benchmark::State& state) {
 	for (auto _ : state) {
 		// This code gets timed
 
 		using namespace vgjs;
-		JobSystem::instance();
+		JobSystem::instance(NUM_THREADS);
 		//enable_logging();
 
 		schedule(std::bind(run, state.range(0)));
 		wait_for_termination();
 
-		std::cout << "Exit\n";
+		//std::cout << "Exit BM_All\n";
 	}
 }
 
-static void BM_Test(benchmark::State& state) {
+
+
+
+// Benchmark wrapper for standard job in Func and Coro Tests
+static void BM_Work(benchmark::State& state) {
+	for (auto _ : state) {
+		// This code gets timed
+		func::work(NUM_LOOPS);
+	}
+}
+
+// Benchmark wrapper for entire Func Test
+static void BM_Func(benchmark::State& state) {
 	using namespace vgjs;
-	JobSystem::instance();
+	JobSystem::instance(NUM_THREADS);
 	//enable_logging();
 
 	for (auto _ : state) {
 		// This code gets timed
-
-		//schedule(std::bind(work));
-		vgjs::terminate();
+		schedule([=]() {func::test(NUM_JOBS, NUM_LOOPS); });
 		wait_for_termination();
-
-		//std::cout << "Exit\n";
 	}
 }
 
-int n = 1;		//Use 1 iteration for Mandelbrot and MCTS
-
-/*
-int main() {
+// Benchmark wrapper for entire Coro Test
+static void BM_Coro(benchmark::State& state) {
 	using namespace vgjs;
-	JobSystem::instance();
+	JobSystem::instance(NUM_THREADS);
 	//enable_logging();
 
-	schedule(std::bind(work));
-
-	wait_for_termination();
-	
-	std::cout << "Exit\n";
+	for (auto _ : state) {
+		// This code gets timed
+		schedule([=]() {coro::test(NUM_JOBS, NUM_LOOPS); });
+		wait_for_termination();
+	}
 }
-*/
 
+// Benchmark wrapper for Mandelbrot Func Test
+static void BM_MandelbrotFunc(benchmark::State& state) {
+	using namespace vgjs;
+	JobSystem::instance(NUM_THREADS);
+	//enable_logging();
 
-//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Arg(n);		//Milli
-//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime()->Arg(n);		//Micro
-//BENCHMARK(BM_Run)->Iterations({ 1 })->Unit(benchmark::kNanosecond)->MeasureProcessCPUTime()->Arg(n);		//Nano
+	for (auto _ : state) {
+		// This code gets timed
+		schedule([=]() {mandelbrotFunc::test(); });
+		wait_for_termination();
+	}
+}
+
+// Benchmark wrapper for Mandelbrot Coro Test
+static void BM_MandelbrotFunc(benchmark::State& state) {
+	using namespace vgjs;
+	JobSystem::instance(NUM_THREADS);
+	//enable_logging();
+
+	for (auto _ : state) {
+		// This code gets timed
+		schedule([=]() {mandelbrotCoro::test(); });
+		wait_for_termination();
+	}
+}
 
 //BENCHMARK(BM_All)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Arg(n);		//Milli
 //BENCHMARK(BM_All)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime()->Arg(n);		//Micro
 //BENCHMARK(BM_All)->Iterations({ 1 })->Unit(benchmark::kNanosecond)->MeasureProcessCPUTime()->Arg(n);		//Nano
 
-//BENCHMARK(BM_Test)->Iterations({ 1 })->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();	//Milli
-//BENCHMARK(BM_Test)->Iterations({ 1 })->Unit(benchmark::kMicrosecond)->MeasureProcessCPUTime();	//Micro
-//BENCHMARK(BM_Test)->Iterations({ 1 })->Unit(benchmark::kNanosecond)->MeasureProcessCPUTime();		//Nano
+// First benchmark work itself, then benchmark multiple calls with Functions and Coros
+BENCHMARK(BM_Work)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime();
+BENCHMARK(BM_Func)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Iterations({ 1 });
+//BENCHMARK(BM_Coro)->Unit(benchmark::kMillisecond)->MeasureProcessCPUTime()->Iterations({ 1 });
 
-//BENCHMARK_MAIN();
 
 
 

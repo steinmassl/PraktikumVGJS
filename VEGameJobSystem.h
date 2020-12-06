@@ -573,7 +573,7 @@ namespace vgjs {
         */
         void wait_for_termination() noexcept {
             while (m_terminated.load() == false) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         };
 

@@ -8,7 +8,7 @@
 	//Tic Tac Toe game to test MCTS
 	class Game {
 	public:
-		static constexpr int DEFAULT_BOARD_SIZE = 10;			//Board Dimensions
+		static constexpr int DEFAULT_BOARD_SIZE = 5;			//Board Dimensions
 		static constexpr int IN_PROGRESS = -1;
 		static constexpr int DRAW = 0;
 		static constexpr int P1 = 1;

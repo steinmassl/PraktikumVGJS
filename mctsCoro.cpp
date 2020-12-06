@@ -3,7 +3,7 @@
 #include <vector>
 #include "VEGameJobSystem.h"
 #include "VECoro.h"
-#include "Game.h"
+#include "mctsGame.h"
 
 using namespace vgjs;
 
@@ -140,7 +140,7 @@ namespace mctsCoro {
 		static constexpr int WIN_SCORE = 10;							//score awarded to nodes leading to win
 		static constexpr int DRAW_SCORE = 5;							//score awarded to nodes leading to draw
 		static constexpr int MAX_ITERATIONS = 500;						//number of iterations of algorithm
-		static constexpr int NUM_TREES = 16;							//number of parallel trees to create when using root parallelization
+		static constexpr int NUM_TREES = 4;							//number of parallel trees to create when using root parallelization
 		Game results[NUM_TREES];										//results from individual trees when using parallelization
 		Game current_game;													//save result of algorithm and access in the following round
 
