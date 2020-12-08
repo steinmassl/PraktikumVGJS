@@ -19,19 +19,16 @@ namespace func {
 
     // Create work functions and start them at the same time to mitigate differences to Coro variant
     void call(int num_jobs, int num_loops) {
-        // /*   uncomment to create empty job
         n_pmr::vector<std::function<void(void)>> vec;
 
         for (int i = 0; i < num_jobs; i++) {
             vec.emplace_back([=]() {work(num_loops); });
         }
         schedule(vec);
-        continuation([]() {vgjs::terminate(); });
-        // */
-        //vgjs::terminate();
     }
 
     void test(int num_jobs, int num_loops) {
         schedule([=]() {call(num_jobs, num_loops); });
     }
 }
+
