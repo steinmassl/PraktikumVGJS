@@ -151,9 +151,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="workCoro.cpp" />
     <ClCompile Include="workFunc.cpp" />
-    <ClCompile Include="mainGBENCH.cpp" />
     <ClCompile Include="mandelbrotCoro.cpp" />
     <ClCompile Include="mandelbrotFunc.cpp" />
     <ClCompile Include="mctsCoro.cpp" />
@@ -161,8 +161,11 @@
     <ClCompile Include="mctsGame.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include.h" />
     <ClInclude Include="VECoro.h" />
     <ClInclude Include="VEGameJobSystem.h" />
+    <ClInclude Include="workCoro.h" />
+    <ClInclude Include="workFunc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

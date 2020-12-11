@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mainGBENCH.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mandelbrotFunc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,12 +36,24 @@
     <ClCompile Include="workCoro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VEGameJobSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="workFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="workCoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
