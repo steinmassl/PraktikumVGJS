@@ -12,4 +12,3 @@ namespace workFunc {
 }
 
 void BM_Work(benchmark::State&);
-void BM_WorkFunc(benchmark::State&);

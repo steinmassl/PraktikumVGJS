@@ -61,7 +61,7 @@ namespace vgjs {
     //schedule functions for coroutines
 
     template<typename T>
-    concept CORO = std::is_base_of<Coro_base, T>::value; //resolve only for coroutines
+    concept CORO = std::is_base_of_v<Coro_base, typename std::decay<T>::type >; //resolve only for coroutines
 
     /**
     * \brief Schedule a Coro into the job system.
@@ -251,13 +251,13 @@ namespace vgjs {
     template<typename PT>
     struct awaitable_resume_on {
         struct awaiter : suspend_always {
-            int32_t m_thread_index;         ///<the thread index to use
+            thread_index m_thread_index;         ///<the thread index to use
 
             /**
             * \brief Test whether the job is already on the right thread.
             */
             bool await_ready() noexcept {   //do not go on with suspension if the job is already on the right thread
-                return (m_thread_index == JobSystem::instance().thread_index());
+                return (m_thread_index.value == JobSystem::instance().thread_index().value);
             }
 
             /**
@@ -273,16 +273,16 @@ namespace vgjs {
             * \brief Awaiter constructor
             * \parameter[in] thread_index NUmber of the thread to migrate to
             */
-            awaiter(int32_t thread_index) noexcept : m_thread_index(thread_index) {};
+            awaiter(thread_index index) noexcept : m_thread_index(index) {};
         };
 
-        int32_t m_thread_index; //the thread index to use
+        thread_index m_thread_index; //the thread index to use
 
         /**
         * \brief Awaiter constructor
         * \parameter[in] thread_index NUmber of the thread to migrate to
         */
-        awaitable_resume_on(int32_t thread_index) noexcept : m_thread_index(thread_index) {};
+        awaitable_resume_on(thread_index index) noexcept : m_thread_index(index) {};
 
         /**
         * \brief co_await operator is defined for this awaitable, and results in the awaiter
@@ -500,14 +500,15 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        awaitable_coro<T, U> await_transform(U&& coro) noexcept { return { coro }; };
+        requires !std::is_integral_v<U>
+        awaitable_coro<T, U> await_transform(U&& func) noexcept { return { func }; };
 
         /**.
         * \brief Called by co_await to create an awaitable for migrating to another thread.
         * \param[in] thread_index The thread to migrate to.
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_resume_on<T> await_transform(int thread_index) noexcept { return { (int32_t)thread_index}; };
+        awaitable_resume_on<T> await_transform(thread_index index) noexcept { return { index }; };
 
         /**
         * \brief Create the final awaiter. This awaiter makes sure that the parent is scheduled if there are no more children.
@@ -620,14 +621,25 @@ namespace vgjs {
         }
 
         /**
+        * \brief Test whether promised value is available
+        * \returns true if promised value is available, else false
+        */
+        bool ready() noexcept {
+            if (m_is_parent_function) {
+                return m_value_ptr->first;
+            }
+            return m_coro.promise().m_value.first;
+        }
+
+        /**
         * \brief Retrieve the promised value - nonblocking
         * \returns the promised value
         */
-        std::pair<bool, T> get() noexcept {
+        T get() noexcept {
             if (m_is_parent_function) {
-                return *m_value_ptr;
+                return m_value_ptr->second;
             }
-            return m_coro.promise().m_value;
+            return m_coro.promise().m_value.second;
         }
 
         /**
@@ -638,7 +650,7 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<T>&& operator() (int32_t thread_index, int32_t type, int32_t id) {
+        Coro<T>&& operator() (thread_index thread_index, thread_type type, thread_id id) {
             m_promise->m_thread_index = thread_index;
             m_promise->m_type = type;
             m_promise->m_id = id;
@@ -717,6 +729,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
+        requires !std::is_integral_v<U>
         awaitable_coro<void, U> await_transform(U&& coro) noexcept { return { coro }; };
 
         /**.
@@ -724,7 +737,7 @@ namespace vgjs {
         * \param[in] thread_index The thread to migrate to.
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_resume_on<void> await_transform(int thread_index) noexcept { return (int32_t)thread_index; };
+        awaitable_resume_on<void> await_transform(thread_index index ) noexcept { return { index }; };
 
         /**
         * \brief Create the final awaiter. This awaiter makes sure that the parent is scheduled if there are no more children.
@@ -797,8 +810,8 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<void>&& operator() (int32_t thread_index, int32_t type, int32_t id) {
-            m_promise->m_thread_index = thread_index;
+        Coro<void>&& operator() (thread_index index, thread_type type, thread_id id) {
+            m_promise->m_thread_index = index;
             m_promise->m_type = type;
             m_promise->m_id = id;
             return std::move(*this);
@@ -948,7 +961,7 @@ namespace vgjs {
     */
     template<typename Class, typename... Args>
     inline void* Coro_promise_base::operator new(std::size_t sz, Class, Args&&... args) noexcept {
-        return operator new(sz, std::allocator_arg, n_pmr::new_delete_resource(), args...);
+        return operator new(sz, std::allocator_arg, JobSystem::instance().memory_resource(), args...);
     }
 
     /**
@@ -959,7 +972,7 @@ namespace vgjs {
     */
     template<typename... Args>
     inline void* Coro_promise_base::operator new(std::size_t sz, Args&&... args) noexcept {
-        return operator new(sz, std::allocator_arg, n_pmr::new_delete_resource(), args...);
+        return operator new(sz, std::allocator_arg, JobSystem::instance().memory_resource(), args...);
     }
 
     /**
