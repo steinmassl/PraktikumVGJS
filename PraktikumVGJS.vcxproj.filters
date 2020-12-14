@@ -27,9 +27,6 @@
     <ClCompile Include="mctsCoro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mctsGame.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="workFunc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mctsGame.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +54,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mandelbrotFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mandelbrotCoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mctsFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mctsCoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mctsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

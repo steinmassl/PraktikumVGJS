@@ -162,6 +162,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include.h" />
+    <ClInclude Include="mandelbrotCoro.h" />
+    <ClInclude Include="mandelbrotFunc.h" />
+    <ClInclude Include="mctsCoro.h" />
+    <ClInclude Include="mctsFunc.h" />
+    <ClInclude Include="mctsStructs.h" />
     <ClInclude Include="VECoro.h" />
     <ClInclude Include="VEGameJobSystem.h" />
     <ClInclude Include="workCoro.h" />

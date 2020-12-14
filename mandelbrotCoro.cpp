@@ -1,16 +1,10 @@
-#include <iostream>
-#include <fstream>
-#include <complex>
-#include "VEGameJobSystem.h"
-#include "VECoro.h"
-
-using namespace vgjs;
+#include "mandelbrotCoro.h"
 
 namespace mandelbrotCoro {
 
 	// Dimensions
-	constexpr int WIDTH = 5000;
-	constexpr int HEIGHT = 5000;
+	constexpr int WIDTH = 1000;
+	constexpr int HEIGHT = 1000;
 
 	const int MAX_ITERATIONS = 50;				// Maximum number of iterations per pixel
 
@@ -81,9 +75,9 @@ namespace mandelbrotCoro {
 
 	//JobQueue<Coro<>> jobQueue;
 
-	Coro<> mandelbrot() {
+	Coro<> test() {
 		
-		std::cout << "Starting MandelbrotCoro" << std::endl;
+		//std::cout << "Starting MandelbrotCoro" << std::endl;
 
 		/*
 		int x = 0, y = 0;
@@ -92,14 +86,14 @@ namespace mandelbrotCoro {
 		//todo
 		*/
 
+		auto start = std::chrono::high_resolution_clock::now();
 		co_await mandelbrotRecursive(0);		//start calculations recursively
 		//co_await mandelbrotLoop();			//start calculations 
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
+		std::cout << "   Test: mandelbrotCoro" << std::endl << "   Execution time: " << elapsed_milliseconds.count() << " ms" << std::endl;
 		//co_await draw();						//start drawing
-		std::cout << "End MandelbrotCoro" << std::endl;
+		//std::cout << "End MandelbrotCoro" << std::endl;
 		co_return;
-	}
-
-	void test() {
-		schedule(mandelbrot());
 	}
 }
