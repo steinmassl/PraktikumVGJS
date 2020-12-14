@@ -257,7 +257,7 @@ namespace vgjs {
             * \brief Test whether the job is already on the right thread.
             */
             bool await_ready() noexcept {   //do not go on with suspension if the job is already on the right thread
-                return (m_thread_index.value == JobSystem::instance().thread_index().value);
+                return (m_thread_index.value == JobSystem::instance().get_thread_index().value);
             }
 
             /**
@@ -500,7 +500,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !std::is_integral_v<U>
+        requires (!std::is_integral_v<U>)
         awaitable_coro<T, U> await_transform(U&& func) noexcept { return { func }; };
 
         /**.
@@ -729,7 +729,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !std::is_integral_v<U>
+        requires (!std::is_integral_v<U>)
         awaitable_coro<void, U> await_transform(U&& coro) noexcept { return { coro }; };
 
         /**.

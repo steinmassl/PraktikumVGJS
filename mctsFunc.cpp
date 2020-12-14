@@ -234,9 +234,9 @@ namespace mctsFunc {
 		//Find best move by creating multiple trees in parallel and merging all results
 		void findNextMoveWithRootParallelization(int player) {
 			for (int i = 0; i < NUM_TREES; i++) {
-				schedule([=]() {findNextMove(player, i); });
+				schedule([=, this]() {findNextMove(player, i); });
 			}
-			continuation([=]() {similarityVote();});
+			continuation([=, this]() {similarityVote();});
 		}
 
 		//Use simplified similarity vote to choose next move after parallelized search

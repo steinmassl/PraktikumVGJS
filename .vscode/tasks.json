@@ -6,12 +6,13 @@
 			"label": "C/C++: g++ build active file",
 			"command": "/usr/bin/g++",
 			"args": [
-				"${workspaceFolder}/mainGBENCH.cpp",
-				"${workspaceFolder}/func.cpp",
-				"${workspaceFolder}/coro.cpp",
-				"${workspaceFolder}/mandelbrotCoro.cpp",
-				"${workspaceFolder}/mandelbrotFunc.cpp",
-				"${workspaceFolder}/mctsFunc.cpp",
+				"${workspaceFolder}/main.cpp",
+				"${workspaceFolder}/workFunc.cpp",
+				"${workspaceFolder}/workCoro.cpp",
+				//"${workspaceFolder}/mandelbrotCoro.cpp",
+				//"${workspaceFolder}/mandelbrotFunc.cpp",
+				//"${workspaceFolder}/mctsFunc.cpp",
+				//"${workspaceFolder}/mctsCoro.cpp",
 
 
 				

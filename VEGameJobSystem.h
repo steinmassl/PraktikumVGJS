@@ -602,7 +602,7 @@ namespace vgjs {
         * \brief Get the thread index the current job is running on.
         * \returns the index of the thread the current job is running on, or -1.
         */
-        thread_index thread_index() {
+        thread_index get_thread_index() {
             return m_thread_index;
         }
 
@@ -953,7 +953,7 @@ namespace vgjs {
         thread_index exec_thread, bool finished, thread_type type, thread_id id) {
 
         auto& logs = JobSystem::instance().get_logs();
-        logs[JobSystem::instance().thread_index().value].emplace_back( t1, t2, JobSystem::instance().thread_index(), finished, type, id);
+        logs[JobSystem::instance().get_thread_index().value].emplace_back( t1, t2, JobSystem::instance().get_thread_index(), finished, type, id);
     }
 
     /**

@@ -38,8 +38,8 @@ void startTimedBenchmark(const int num_loops, const int num_jobs, const int num_
 	std::chrono::time_point<std::chrono::system_clock> end;
 	end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
 
-	//schedule([=]() {workFunc::benchmarkTimedWork(num_loops, num_jobs, end); });
-	schedule(workCoro::benchmarkTimedWork(num_loops, num_jobs, end));
+	schedule([=]() {workFunc::benchmarkTimedWork(num_loops, num_jobs, end); });
+	//schedule(workCoro::benchmarkTimedWork(num_loops, num_jobs, end));
 
 	continuation([]() {vgjs::terminate(); });
 
@@ -58,7 +58,7 @@ void startSingleBenchmark(const int num_loops, const int num_jobs) {
 
 void startGoogleBenchmarks(const int num_loops) {
 
-	int argc;
+	int argc = 0;
 	char** argv = {};
 
 	auto work_benchmark = [](benchmark::State& state) { BM_Work(state); };
