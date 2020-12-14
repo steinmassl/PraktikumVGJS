@@ -22,12 +22,12 @@ static void BM_MandelbrotCoro(benchmark::State&);
 
 
 // General Settings
-const int g_num_threads = 16;
+const int g_num_threads = 1;
 const int g_num_seconds = 20;
 
 //const int g_num_loops	= 365; // 10us
 //const int g_num_loops	= 253; // 7us
-const int g_num_loops	= 185; // 5us
+const int g_num_loops	= 190; // 5us
 const int g_num_jobs	= std::thread::hardware_concurrency();
 
 
