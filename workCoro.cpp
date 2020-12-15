@@ -2,11 +2,13 @@
 
 namespace workCoro {
 
-    int											g_work_calls = 0;
+    /*
+    int             							g_work_calls = 0;
     std::chrono::duration<double, std::micro>	g_total_work_runtime = {};
+    */
 
     // Do some work not optimized by the compiler
-    Coro<> work(const int& num_loops) {
+    Coro<> work(const int num_loops) {
         volatile unsigned long x = 0;
         for (int i = 0; i < num_loops; i++) {
             x = x + (unsigned long)std::chrono::system_clock::now().time_since_epoch().count();
@@ -14,6 +16,7 @@ namespace workCoro {
         co_return;
     }
 
+    /*
     // Start multiple work coros
     Coro<> test(const int& num_loops, const int& num_jobs, const bool single_benchmark) {
         n_pmr::vector<Coro<>> vec;
@@ -32,31 +35,39 @@ namespace workCoro {
         co_return;
     }
 
-    Coro<> timedTest(const int& num_loops, const int& num_jobs) {
-        n_pmr::vector<Coro<>> vec;
+    Coro<> timedTest(const int& num_loops, const std::chrono::time_point<std::chrono::system_clock>& end) {
+        for (int i = 0; i < 16384; i++) {
 
-        for (int i = 0; i < num_jobs; i++) {
-            vec.emplace_back(work(num_loops));
         }
-        co_await vec;
         co_return;
     }
+        
 
     // Benchmark wrapper for workFunc Test
     Coro<> benchmarkWork(const int num_loops, const int num_jobs) {
         co_await test(num_loops, num_jobs, true);
         co_return;
     }
+    */
 
-    // Benchmark multiple runs of workCoro until end point is reached
-    Coro<> benchmarkTimedWork(const int num_loops, const int num_jobs, std::chrono::time_point<std::chrono::system_clock> end) {
-        while (std::chrono::system_clock::now() < end) {
-            co_await timedTest(num_loops, num_jobs);
-            g_work_calls++;
+
+    // Benchmark multiple runs of workCoro
+    Coro<> benchmarkWork(const int num_loops, const int num_jobs/*, std::chrono::time_point<std::chrono::system_clock> end_of_program*/) {
+        n_pmr::vector<Coro<>> vec;
+        vec.reserve(num_jobs);
+        for (int i = 0; i < num_jobs; i++) {
+            vec.emplace_back(work(num_loops));
         }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        co_await vec;
+        auto end = std::chrono::high_resolution_clock::now();
+
+        std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
         std::cout << std::endl <<   "     Test: workCoro" << std::endl;
-        std::cout << std::endl <<   "     Number of calls:           " << g_work_calls << std::endl;
-        std::cout <<                "     Mean job execution time:   " << 20000000.0 / g_work_calls << " us" << std::endl;
-        std::cout <<                "     Mean job execution time new:   " << g_total_work_runtime.count() / g_work_calls << " us" << std::endl;
+        //std::cout << std::endl <<   "     Number of calls:           " << g_work_calls << std::endl;
+        std::cout <<                "     Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
+        //std::cout <<                "     Mean job execution time new:   " << g_total_work_runtime.count() / g_work_calls << " us" << std::endl;
+        co_return;
     }
 }

@@ -10,15 +10,24 @@
 
 // General Settings
 
-const int g_num_threads = 16;		// Number of threads to use in the VGJS
+const int g_num_threads = 8;		// Number of threads to use in the VGJS
+const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
 const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
 
-// Amount of loops determines length of work() function
-//const int g_num_loops	= 365; // 10us 
-//const int g_num_loops	= 253; // 7us
-const int g_num_loops	= 190; // 5us
 
-const int g_num_jobs	= std::thread::hardware_concurrency();		// Number of work jobs to create for a single test of work()
+// Amount of loops determines length of work() function
+//const int g_num_loops	= 365000;	// 10ms
+//const int g_num_loops	= 185000;	// 5ms
+//const int g_num_loops	= 36500;	// 1ms
+//const int g_num_loops	= 3650;		// 100us
+//const int g_num_loops	= 365;		// 10us 
+//const int g_num_loops	= 253;		// 7us
+//const int g_num_loops	= 185;		// 5us
+//const int g_num_loops	= 146;		// 4us		// Threshold for C++ function jobs (Win) 8c16t
+//const int g_num_loops	= 110;		// 3us
+const int g_num_loops	= 73;		// 2us		// Threshold for Coro jobs (Win) 8c16t
+//const int g_num_loops	= 37;		// 1us
+
 
 
 
@@ -30,8 +39,8 @@ void startTimedBenchmark(const int num_loops, const int num_jobs, const int num_
 	end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
 
 
-	// workFunc and workCoro for Speedup Testing
-	schedule([=]() {workFunc::benchmarkTimedWork(num_loops, num_jobs, end); });
+	// workFunc and workCoro for Speedup Testing - don't exist right now
+	//schedule([=]() {workFunc::benchmarkTimedWork(num_loops, num_jobs, end); });
 	//schedule(workCoro::benchmarkTimedWork(num_loops, num_jobs, end));
 
 
@@ -46,8 +55,8 @@ void startTimedBenchmark(const int num_loops, const int num_jobs, const int num_
 void startSingleBenchmark(const int num_loops, const int num_jobs) {
 	
 	// workFunc and workCoro for Speedup Testing
-	schedule([=]() {workFunc::benchmarkWork(num_loops, num_jobs); });
-	//schedule(workCoro::benchmarkWork(num_loops, num_jobs));
+	//schedule([=]() {workFunc::benchmarkWork(num_loops, num_jobs); });
+	schedule(workCoro::benchmarkWork(num_loops, num_jobs));
 	
 	// Just test these for now
 	//schedule([]() {mandelbrotFunc::test(); });
