@@ -6,6 +6,7 @@
 #include "mandelbrotCoro.h"
 #include "mctsFunc.h"
 #include "mctsCoro.h"
+#include "Lock-free_queue_test.h"
 
 
 // General Settings
@@ -86,12 +87,12 @@ void startGoogleBenchmarks(const int num_loops) {
 	benchmark::RunSpecifiedBenchmarks();
 }
 
-
+new_JobQueue queue;
 
 int main() {
 
 	// Google Benchmarks
-	startGoogleBenchmarks(g_num_loops);
+	//startGoogleBenchmarks(g_num_loops);
 
 
 	JobSystem::instance(g_num_threads);
@@ -99,12 +100,25 @@ int main() {
 	std::cout <<				"Number of work() Jobs:          " << g_num_jobs << std::endl << std::endl;
 	//enable_logging();
 
-	// Timed Benchmarks
+	// Timed Benchmarks - don't work right now
 	//schedule([]() {startTimedBenchmark(g_num_loops, g_num_jobs, g_num_seconds); });
 
 
 	// Single Benchmarks
-	schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
+	//schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
+
+
+	for (int i = 0; i < 100; i++) {
+		schedule([]() {
+			for (int i = 0; i < 100; i++) {
+				new_Queuable queuable;
+				queue.push(&queuable);
+				std::cout << std::endl << "Loop: " << i << std::endl;
+			}
+		});
+	}
+
+
 
 
 	wait_for_termination();

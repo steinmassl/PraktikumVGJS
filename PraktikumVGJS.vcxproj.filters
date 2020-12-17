@@ -39,6 +39,9 @@
     <ClCompile Include="mctsGame.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Lock-free_queue_test.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VECoro.h">
