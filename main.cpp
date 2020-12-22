@@ -11,7 +11,7 @@
 
 // General Settings
 
-const int g_num_threads = 8;		// Number of threads to use in the VGJS
+const int g_num_threads = 16;		// Number of threads to use in the VGJS
 const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
 const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
 
@@ -56,8 +56,8 @@ void startTimedBenchmark(const int num_loops, const int num_jobs, const int num_
 void startSingleBenchmark(const int num_loops, const int num_jobs) {
 	
 	// workFunc and workCoro for Speedup Testing
-	//schedule([=]() {workFunc::benchmarkWork(num_loops, num_jobs); });
-	schedule(workCoro::benchmarkWork(num_loops, num_jobs));
+	schedule([=]() {workFunc::benchmarkWork(num_loops, num_jobs); });
+	//schedule(workCoro::benchmarkWork(num_loops, num_jobs));
 	
 	// Just test these for now
 	//schedule([]() {mandelbrotFunc::test(); });
@@ -92,7 +92,7 @@ new_JobQueue queue;
 int main() {
 
 	// Google Benchmarks
-	//startGoogleBenchmarks(g_num_loops);
+	startGoogleBenchmarks(g_num_loops);
 
 
 	JobSystem::instance(g_num_threads);
@@ -105,9 +105,9 @@ int main() {
 
 
 	// Single Benchmarks
-	//schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
+	schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
 
-
+	/*
 	for (int i = 0; i < 100; i++) {
 		schedule([]() {
 			for (int i = 0; i < 100; i++) {
@@ -117,9 +117,7 @@ int main() {
 			}
 		});
 	}
-
-
-
+	*/
 
 	wait_for_termination();
 }

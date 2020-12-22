@@ -26,13 +26,10 @@ public:
 	std::atomic<hazard_ptr> m_next;           //next job in the queue
 };
 
-
-
-
 class new_JobQueue {
-	std::atomic<hazard_ptr> m_head;	        //points to first entry
+	std::atomic<hazard_ptr>	m_head;	        //points to first entry
 	std::atomic<hazard_ptr> m_tail;	        //points to last entry
-	int32_t m_size = 0;				//number of entries in the queue
+	std::atomic<int32_t>	m_size = 0;		//number of entries in the queue
 
 public:
 	new_JobQueue() {
@@ -41,8 +38,8 @@ public:
 		m_tail.store(start);
 	}
 	~new_JobQueue() {}
-	uint32_t clear() { return 0; }
-	uint32_t size() { return 0; }
+
+
 
 	void push(new_Queuable* queuable) {
 		queuable->m_next.store({});
@@ -53,9 +50,9 @@ public:
 			hazard_ptr next = { std::atomic_load(&tail.ptr->m_next) };
 			if (tail == std::atomic_load(&m_tail)) {
 				if (next.ptr == nullptr) {
-					bool exchanged = std::atomic_compare_exchange_weak(&tail.ptr->m_next, &next, job.updateCount(next.count + 1));
-					std::cout << "Count: " << tail.ptr->m_next.load().count << std::endl;
-					if (exchanged) {
+					bool CAS_successful = std::atomic_compare_exchange_weak(&tail.ptr->m_next, &next, job.updateCount(next.count + 1));
+					//std::cout << "Count: " << tail.ptr->m_next.load().count << std::endl;
+					if (CAS_successful) {
 						break;
 					}
 				}
@@ -65,5 +62,27 @@ public:
 			}
 		}
 		std::atomic_compare_exchange_weak(&m_tail, &tail, job.updateCount(tail.count + 1));
+		m_size++;
+	}
+	/*
+	new_Queuable* pop() {
+
+	}
+	
+
+	uint32_t clear() {
+		uint32_t res = m_size;
+		new_Queuable* job = pop();						//deallocate jobs that run a function
+		while (job != nullptr) {						//because they were allocated by the JobSystem
+			//auto da = job->get_deallocator();			//get deallocator
+			//da.deallocate(job);						//deallocate the memory
+			job = pop();								//get next entry
+		}
+		return res;
+	}
+	*/
+
+	uint32_t size() {
+		return m_size;
 	}
 };
