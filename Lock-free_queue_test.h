@@ -64,12 +64,35 @@ public:
 		std::atomic_compare_exchange_weak(&m_tail, &tail, job.updateCount(tail.count + 1));
 		m_size++;
 	}
-	/*
-	new_Queuable* pop() {
+	
+	
+	bool pop(new_Queuable* dest) {
+		hazard_ptr head;
+		while (true) {
+			head = std::atomic_load(&m_head);
+			hazard_ptr tail = std::atomic_load(&m_tail);
+			hazard_ptr next = { std::atomic_load(&head.ptr->m_next) };
 
+			if (head == std::atomic_load(&m_head)) {
+				if (head.ptr == tail.ptr) {
+					if (next.ptr == nullptr) {
+						return false;
+					}
+					std::atomic_compare_exchange_weak(&m_tail, &tail, next.updateCount(tail.count + 1));
+				}
+				else {
+					dest = next.ptr;
+					bool CAS_successful = std::atomic_compare_exchange_weak(&m_head, &head, next.updateCount(head.count + 1));
+					if (CAS_successful)
+						break;
+				}
+			}
+		}
+		// free dummy head node
+		return true;
 	}
 	
-
+	/*
 	uint32_t clear() {
 		uint32_t res = m_size;
 		new_Queuable* job = pop();						//deallocate jobs that run a function
