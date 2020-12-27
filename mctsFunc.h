@@ -1,7 +1,8 @@
 #pragma once
 
-#include "include.h"
-#include "mctsStructs.h"
+#include "VEGameJobSystem.h"
+
+using namespace vgjs;
 
 namespace mctsFunc {
 	void test();

@@ -1,6 +1,9 @@
 #pragma once
 
-#include "include.h"
+#include "VEGameJobSystem.h"
+#include "benchmark.h"
+
+using namespace vgjs;
 
 namespace workFunc {
 

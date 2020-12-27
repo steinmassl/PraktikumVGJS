@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Lock-free_queue_test.cpp" />
     <ClCompile Include="Lock-free_queue_test.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="workCoro.cpp" />
@@ -162,7 +163,6 @@
     <ClCompile Include="mctsGame.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include.h" />
     <ClInclude Include="mandelbrotCoro.h" />
     <ClInclude Include="mandelbrotFunc.h" />
     <ClInclude Include="mctsCoro.h" />

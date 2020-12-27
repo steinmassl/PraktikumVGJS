@@ -1,6 +1,8 @@
 #pragma once
 
-#include "include.h"
+#include "VEGameJobSystem.h"
+
+using namespace vgjs;
 
 namespace mandelbrotFunc {
 	void draw();

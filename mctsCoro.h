@@ -1,7 +1,9 @@
 #pragma once
 
-#include "include.h"
-#include "mctsStructs.h"
+#include "VEGameJobSystem.h"
+#include "VECoro.h"
+
+using namespace vgjs;
 
 namespace mctsCoro {
 	Coro<> test();

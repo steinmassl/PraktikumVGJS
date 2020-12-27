@@ -1,4 +1,5 @@
 #include "mandelbrotCoro.h"
+#include <complex>
 
 namespace mandelbrotCoro {
 

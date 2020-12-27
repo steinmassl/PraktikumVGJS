@@ -1,4 +1,6 @@
-#include "include.h"
+#include "VEGameJobSystem.h"
+#include "VECoro.h"
+#include "benchmark.h"
 
 #include "workFunc.h"
 #include "workCoro.h"
@@ -11,7 +13,7 @@
 
 // General Settings
 
-const int g_num_threads = 16;		// Number of threads to use in the VGJS
+const int g_num_threads = 4;		// Number of threads to use in the VGJS
 const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
 const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
 
@@ -87,12 +89,10 @@ void startGoogleBenchmarks(const int num_loops) {
 	benchmark::RunSpecifiedBenchmarks();
 }
 
-new_JobQueue queue;
-
 int main() {
 
 	// Google Benchmarks
-	startGoogleBenchmarks(g_num_loops);
+	//startGoogleBenchmarks(g_num_loops);
 
 
 	JobSystem::instance(g_num_threads);
@@ -105,19 +105,9 @@ int main() {
 
 
 	// Single Benchmarks
-	schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
+	//schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
 
-	/*
-	for (int i = 0; i < 100; i++) {
-		schedule([]() {
-			for (int i = 0; i < 100; i++) {
-				new_Queuable queuable;
-				queue.push(&queuable);
-				std::cout << std::endl << "Loop: " << i << std::endl;
-			}
-		});
-	}
-	*/
+	//schedule([]() {lock_free_queue::test(); });
 
 	wait_for_termination();
 }

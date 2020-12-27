@@ -1,4 +1,5 @@
 #include "mctsCoro.h"
+#include "mctsStructs.h"
 
 namespace mctsCoro {
 
