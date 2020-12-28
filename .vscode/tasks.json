@@ -32,7 +32,7 @@
 				"-fconcepts",
 				"-O2",
 				"-g",
-				"-pthread"
+				"-pthread",
 			],
 			
 			"options": {

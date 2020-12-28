@@ -8,12 +8,13 @@
 #include "mandelbrotCoro.h"
 #include "mctsFunc.h"
 #include "mctsCoro.h"
+
 #include "Lock-free_queue_test.h"
 
 
 // General Settings
 
-const int g_num_threads = 2;		// Number of threads to use in the VGJS
+const int g_num_threads = 4;		// Number of threads to use in the VGJS
 const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
 const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
 
@@ -76,7 +77,7 @@ void startSingleBenchmark(const int num_loops, const int num_jobs) {
 // Register C++ functions as Benchmarks and run them
 void startGoogleBenchmarks(const int num_loops) {
 
-	// Dummy arguments for Initialize()
+	// Dummy arguments for benchmark::Initialize()
 	int argc = 0;
 	char** argv = {};
 
