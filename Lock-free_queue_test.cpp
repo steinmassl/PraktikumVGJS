@@ -2,6 +2,10 @@
 
 namespace lock_free_queue {
 
+	struct node {
+
+	};
+
 	struct hazard_ptr {
 		new_Queuable* ptr = nullptr;
 		uint32_t count = 0;
@@ -9,9 +13,7 @@ namespace lock_free_queue {
 		hazard_ptr() {}
 		hazard_ptr(new_Queuable*&& job, uint32_t count) : ptr(std::forward<new_Queuable*>(job)), count(count) {}
 
-		bool operator== (const hazard_ptr& other) const {
-			return (ptr == other.ptr && count == other.count);
-		}
+
 		hazard_ptr& updateCount(const uint32_t& val) {
 			count = val;
 			return *this;
@@ -22,6 +24,10 @@ namespace lock_free_queue {
 	public:
 		std::atomic<hazard_ptr> m_next;           //next job in the queue
 	};
+
+	bool operator== (const hazard_ptr& lhs, const hazard_ptr& rhs) {
+		return (lhs.ptr == rhs.ptr && lhs.count == rhs.count);
+	}
 
 	class new_JobQueue {
 		std::atomic<hazard_ptr>	m_head;	        //points to first entry
@@ -43,23 +49,27 @@ namespace lock_free_queue {
 			hazard_ptr job(std::forward<new_Queuable*>(queuable), 0);
 			hazard_ptr tail;
 			while (true) {
-				tail = std::atomic_load(&m_tail);
-				hazard_ptr next = { std::atomic_load(&tail.ptr->m_next) };
-				if (tail == std::atomic_load(&m_tail)) {
+				//std::cout << "Looping..." << std::endl;
+				tail = std::atomic_load_explicit(&m_tail, std::memory_order_acquire);
+				hazard_ptr next = std::atomic_load_explicit(&(tail.ptr->m_next), std::memory_order_acquire);
+				if (tail == std::atomic_load_explicit(&m_tail, std::memory_order_acquire)) {
 					if (next.ptr == nullptr) {
-						bool CAS_successful = std::atomic_compare_exchange_weak(&tail.ptr->m_next, &next, job.updateCount(next.count + 1));
-						//std::cout << "Count: " << tail.ptr->m_next.load().count << std::endl;
+						bool CAS_successful = std::atomic_compare_exchange_weak(&(tail.ptr->m_next), &next, job.updateCount(next.count + 1));
+						std::cout << "First Count: " << tail.ptr->m_next.load().count << std::endl;
 						if (CAS_successful) {
 							break;
 						}
 					}
 					else {
 						std::atomic_compare_exchange_weak(&m_tail, &tail, next.updateCount(tail.count + 1));
+						std::cout << "Second Count: " << m_tail.load().count << std::endl;
 					}
 				}
 			}
 			std::atomic_compare_exchange_weak(&m_tail, &tail, job.updateCount(tail.count + 1));
+			std::cout << "Third Count: " << m_tail.load().count << std::endl;
 			m_size++;
+			std::cout << "Size: " << m_size << std::endl;
 		}
 
 
@@ -68,7 +78,7 @@ namespace lock_free_queue {
 			while (true) {
 				head = std::atomic_load(&m_head);
 				hazard_ptr tail = std::atomic_load(&m_tail);
-				hazard_ptr next = { std::atomic_load(&head.ptr->m_next) };
+				hazard_ptr next = std::atomic_load(&head.ptr->m_next);
 
 				if (head == std::atomic_load(&m_head)) {
 					if (head.ptr == tail.ptr) {
@@ -110,14 +120,14 @@ namespace lock_free_queue {
 	};
 
 	new_JobQueue queue;
-	/*
+	
 	void test() {
 		for (int i = 0; i < 100; i++) {
 			schedule([]() {
-				for (int j = 0; j < 10; j++) {
+				for (int j = 0; j < 100; j++) {
 					new_Queuable queuable;
 					queue.push(&queuable);
-					std::cout << std::endl << "Push Loop: " << j << std::endl;
+					//std::cout << "Push Loop: " << j << std::endl;
 				}
 			});
 		}
@@ -125,18 +135,18 @@ namespace lock_free_queue {
 		continuation([]() {
 			std::cout << "End of push operations" << std::endl;
 
-			for (int i = 0; i < 100; i++) {
+			for (int i = 0; i < 10; i++) {
 				schedule([]() {
 					for (int j = 0; j < 10; j++) {
 						new_Queuable queuable;
 						queue.pop(&queuable);
-						std::cout << std::endl << "Pop Loop: " << j << std::endl;
+						std::cout << "Pop Loop: " << j << std::endl;
 					}
 				});
 			}
 			continuation([]() {vgjs::terminate(); });
 		});
-
+		*/
+	continuation([]() { vgjs::terminate(); });
 	}
-	*/
 }

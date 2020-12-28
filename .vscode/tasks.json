@@ -13,7 +13,7 @@
 				//"${workspaceFolder}/mandelbrotFunc.cpp",
 				//"${workspaceFolder}/mctsFunc.cpp",
 				//"${workspaceFolder}/mctsCoro.cpp",
-
+				"${workspaceFolder}/Lock-free_queue_test.cpp",
 
 				
 				"-I/usr/local/include/benchmark",

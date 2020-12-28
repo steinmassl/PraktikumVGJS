@@ -85,6 +85,12 @@
         "ios": "cpp",
         "locale": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "any": "cpp",
+        "hash_map": "cpp",
+        "complex": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "regex": "cpp"
     }
 }

@@ -13,7 +13,7 @@
 
 // General Settings
 
-const int g_num_threads = 4;		// Number of threads to use in the VGJS
+const int g_num_threads = 2;		// Number of threads to use in the VGJS
 const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
 const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
 
@@ -107,7 +107,7 @@ int main() {
 	// Single Benchmarks
 	//schedule([]() {startSingleBenchmark(g_num_loops, g_num_jobs); });
 
-	//schedule([]() {lock_free_queue::test(); });
+	schedule([]() {lock_free_queue::test(); });
 
 	wait_for_termination();
 }

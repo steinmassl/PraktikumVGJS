@@ -9,5 +9,5 @@ namespace lock_free_queue {
 	class new_Queuable;
 	class new_JobQueue;
 
-	//void test();
+	void test();
 }
