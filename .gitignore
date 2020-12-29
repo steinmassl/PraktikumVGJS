@@ -12,3 +12,4 @@ log.json
 /external/benchmark/
 mandelbrotFunc.ppm
 mandelbrotCoro.ppm
+/build/

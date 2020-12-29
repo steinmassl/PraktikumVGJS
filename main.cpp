@@ -1,6 +1,6 @@
 #include "VEGameJobSystem.h"
 #include "VECoro.h"
-#include "benchmark.h"
+//#include "benchmark.h"
 
 #include "workFunc.h"
 #include "workCoro.h"
@@ -63,7 +63,7 @@ Coro<> startTimedBenchmark(const int num_loops, const int num_jobs, const int nu
 	vgjs::terminate();
 	co_return;
 }
-
+/*
 // Register C++ functions as Benchmarks and run them
 void startGoogleBenchmarks(const int num_loops) {
 
@@ -79,7 +79,7 @@ void startGoogleBenchmarks(const int num_loops) {
 	benchmark::Initialize(&argc, argv);
 	benchmark::RunSpecifiedBenchmarks();
 }
-
+*/
 int main() {
 
 	// Google Benchmarks

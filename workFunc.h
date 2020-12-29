@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VEGameJobSystem.h"
-#include "benchmark.h"
+//#include "benchmark.h"
 
 using namespace vgjs;
 
@@ -14,4 +14,4 @@ namespace workFunc {
 	//void benchmarkTimedWork(const int, const int, std::chrono::time_point<std::chrono::system_clock>);
 }
 
-void BM_Work(benchmark::State&);
+//void BM_Work(benchmark::State&);
