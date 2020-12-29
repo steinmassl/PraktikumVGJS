@@ -1,6 +1,6 @@
 #include "VEGameJobSystem.h"
 #include "VECoro.h"
-//#include "benchmark.h"
+#include "benchmark.h"
 
 #include "workFunc.h"
 #include "workCoro.h"
@@ -11,7 +11,7 @@
 
 #include "Lock-free_queue_test.h"
 
-
+ 
 // Amount of loops determines length of work() function
 //const int g_num_loops	= 365000;	// 10ms
 //const int g_num_loops	= 185000;	// 5ms
@@ -63,7 +63,7 @@ Coro<> startTimedBenchmark(const int num_loops, const int num_jobs, const int nu
 	vgjs::terminate();
 	co_return;
 }
-/*
+
 // Register C++ functions as Benchmarks and run them
 void startGoogleBenchmarks(const int num_loops) {
 
@@ -79,11 +79,11 @@ void startGoogleBenchmarks(const int num_loops) {
 	benchmark::Initialize(&argc, argv);
 	benchmark::RunSpecifiedBenchmarks();
 }
-*/
+
 int main() {
 
 	// Google Benchmarks
-	//startGoogleBenchmarks(g_num_loops);
+	startGoogleBenchmarks(g_num_loops);
 
 	JobSystem::instance(g_num_threads);
 	//enable_logging();

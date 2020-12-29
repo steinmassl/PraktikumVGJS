@@ -76,7 +76,6 @@ namespace workFunc {
     }
 }
 
-/*
 // (Google) Benchmark wrapper for work() to use in workFunc and workCoro Tests
 void BM_Work(benchmark::State& state) {
     for (auto _ : state) {
@@ -84,6 +83,6 @@ void BM_Work(benchmark::State& state) {
         workFunc::work((int) state.range(0));
     }
 }
-*/
+
 
 

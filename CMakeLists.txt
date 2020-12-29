@@ -5,6 +5,8 @@ project(PraktikumVGJS)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_subdirectory(external/benchmark)
+
 # Find gcc's built-in atomic shared library (libatomic.so)
 FIND_LIBRARY(GCCLIBATOMIC_LIBRARY NAMES atomic atomic.so.1 libatomic.so.1
   HINTS
@@ -31,11 +33,7 @@ ENDIF ()
 
 
 
-add_compile_options(-g
-                    -O2
-                    -pthread
-                    -latomic
-                    -fcoroutines
+add_compile_options(-fcoroutines
                     -fconcepts
                     )
 
@@ -52,5 +50,12 @@ add_executable( main
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-target_link_libraries(main PRIVATE Threads::Threads)
-target_link_libraries(main PRIVATE ${GCCLIBATOMIC_LIBRARY})
+
+target_link_libraries(main PRIVATE Threads::Threads
+                           PRIVATE ${GCCLIBATOMIC_LIBRARY}
+                           PRIVATE benchmark::benchmark
+                           PRIVATE benchmark::benchmark_main
+                           )
+
+target_include_directories(main PRIVATE external/benchmark/include/benchmark)
+
