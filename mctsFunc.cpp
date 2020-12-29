@@ -110,7 +110,7 @@ namespace mctsFunc {
 
 		// Use simplified similarity vote to choose next move after parallelized search
 		void similarityVote() {
-			std::cout << "Similarity: ";
+			//std::cout << "Similarity: ";
 			std::unordered_map<Game, int, Game::GameHasher> hash;			// Hash into map to efficiently find most frequent element
 			for (int i = 0; i < NUM_TREES; i++) {
 				hash[results[i]]++;											// Add votes from trees to their respective chosen moves 
@@ -123,7 +123,7 @@ namespace mctsFunc {
 					max_count = ele.second;
 				}
 			}
-			std::cout << max_count << " trees voted for this move" << std::endl;
+			//std::cout << max_count << " trees voted for this move" << std::endl;
 			current_game = res;
 		}
 
@@ -145,12 +145,12 @@ namespace mctsFunc {
 	int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
 
 	void loopForEachRound(int n) {
-		std::cout << "Player " << player << std::endl;
+		//std::cout << "Player " << player << std::endl;
 		schedule([]() {mcts.findNextMoveWithRootParallelization(player); });			// Find move using MCTS with root parallelization
 
 		continuation([=]() {
-			mcts.getCurrentGame().print();		// Show Board
-			std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
+			//mcts.getCurrentGame().print();		// Show Board
+			//std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
 			if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			// Game is not over
 				player = 3 - player;													// Toggle player
 				loopForEachRound(n + 1);												// Next round
@@ -161,14 +161,21 @@ namespace mctsFunc {
 	// Test MCTS
 	void test() {
 
-		std::cout << "Starting MCTS Test" << std::endl;	
+		//std::cout << "Starting MCTS Test" << std::endl;	
 
+		auto start = std::chrono::high_resolution_clock::now();
 		schedule([]() {loopForEachRound(0); });
 										
-		continuation([]() {
-			int win_status = mcts.getCurrentGame().checkStatus();
-			std::cout << "Status: " << win_status << std::endl;
-			std::cout << "Ending MCTS Test" << std::endl;
+		continuation([=]() {
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
+			std::cout << std::endl << 	"   Test: mctsFunc" << std::endl;
+			std::cout << 				"   Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
+			
+			
+			//int win_status = mcts.getCurrentGame().checkStatus();
+			//std::cout << "Status: " << win_status << std::endl;
+			//std::cout << "Ending MCTS Test" << std::endl;
 		});
 	}
 }

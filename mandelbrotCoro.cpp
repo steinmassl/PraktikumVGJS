@@ -92,7 +92,8 @@ namespace mandelbrotCoro {
 		//co_await mandelbrotLoop();			//start calculations 
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
-		std::cout << "   Test: mandelbrotCoro" << std::endl << "   Execution time: " << elapsed_milliseconds.count() << " ms" << std::endl;
+		std::cout << std::endl <<  	"   Test: mandelbrotCoro" << std::endl;
+		std::cout << 				"   Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
 		//co_await draw();						//start drawing
 		//std::cout << "End MandelbrotCoro" << std::endl;
 		co_return;

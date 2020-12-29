@@ -123,7 +123,7 @@ namespace lock_free_queue {
 	void test() {
 		for (int i = 0; i < 16; i++) {
 			schedule([]() {
-				for (int j = 0; j < 100; j++) {
+				for (int j = 0; j < 1; j++) {
 					Queuable queuable;
 					queue.push(&queuable);
 				}
@@ -132,7 +132,7 @@ namespace lock_free_queue {
 		//continuation([]() {
 			for (int i = 0; i < 16; i++) {
 				schedule([]() {
-					for (int j = 0; j < 200; j++) {
+					for (int j = 0; j < 2; j++) {
 						Queuable queuable;
 						bool pop = queue.pop(&queuable);
 						std::cout << "Pop: " << pop << std::endl;

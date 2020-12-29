@@ -64,9 +64,9 @@ namespace workCoro {
         auto end = std::chrono::high_resolution_clock::now();
 
         std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
-        std::cout << std::endl <<   "     Test: workCoro" << std::endl;
+        std::cout << std::endl <<   "   Test: workCoro" << std::endl;
         //std::cout << std::endl <<   "     Number of calls:           " << g_work_calls << std::endl;
-        std::cout <<                "     Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
+        std::cout <<                "   Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
         //std::cout <<                "     Mean job execution time new:   " << g_total_work_runtime.count() / g_work_calls << " us" << std::endl;
         co_return;
     }

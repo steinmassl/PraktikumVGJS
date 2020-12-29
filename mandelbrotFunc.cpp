@@ -71,7 +71,8 @@ namespace mandelbrotFunc {
 		continuation([=]() {
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
-			std::cout << "   Test: mandelbrotFunc" << std::endl << "   Execution time: " << elapsed_milliseconds.count() << " ms" << std::endl;
+			std::cout << std::endl << 	"   Test: mandelbrotFunc" << std::endl;
+			std::cout << 				"   Execution time:   " << elapsed_milliseconds.count() << " ms" << std::endl;
 			//draw();		// Start drawing
 			//std::cout << "End MandelbrotFunc" << std::endl;
 		});				

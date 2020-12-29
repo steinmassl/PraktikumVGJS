@@ -9,10 +9,10 @@
 				"${workspaceFolder}/main.cpp",
 				"${workspaceFolder}/workFunc.cpp",
 				"${workspaceFolder}/workCoro.cpp",
-				//"${workspaceFolder}/mandelbrotCoro.cpp",
-				//"${workspaceFolder}/mandelbrotFunc.cpp",
-				//"${workspaceFolder}/mctsFunc.cpp",
-				//"${workspaceFolder}/mctsCoro.cpp",
+				"${workspaceFolder}/mandelbrotCoro.cpp",
+				"${workspaceFolder}/mandelbrotFunc.cpp",
+				"${workspaceFolder}/mctsFunc.cpp",
+				"${workspaceFolder}/mctsCoro.cpp",
 				"${workspaceFolder}/Lock-free_queue_test.cpp",
 
 				
