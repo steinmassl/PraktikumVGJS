@@ -151,8 +151,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Lock-free_queue_test.cpp" />
-    <ClCompile Include="Lock-free_queue_test.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="workCoro.cpp" />
     <ClCompile Include="workFunc.cpp" />

@@ -8,10 +8,8 @@ using namespace vgjs;
 namespace workFunc {
 
 	void work(const int);
-	//void test(const int, const int, const bool);
-
-	void benchmarkWork(const int, const int);
-	//void benchmarkTimedWork(const int, const int, std::chrono::time_point<std::chrono::system_clock>);
+	void benchmarkWorkWithFixedSize(const int, const int);
+	void benchmarkWorkWithFixedTime(const int, const int, const int);
 }
 
 void BM_Work(benchmark::State&);

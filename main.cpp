@@ -9,7 +9,7 @@
 #include "mctsFunc.h"
 #include "mctsCoro.h"
 
-#include "Lock-free_queue_test.h"
+//#include "Lock-free_queue_test.h"
 
  
 // Amount of loops determines length of work() function
@@ -22,43 +22,50 @@
 //const int g_num_loops	= 185;		// 5us
 //const int g_num_loops	= 146;		// 4us		// Threshold for C++ function jobs (Win) 8c16t
 //const int g_num_loops	= 110;		// 3us
-const int g_num_loops	= 73;		// 2us		// Threshold for Coro jobs (Win) 8c16t
+//const int g_num_loops	= 73;		// 2us		// Threshold for Coro jobs (Win) 8c16t
+const int g_num_loops	= 60;		// 2us		// Laptop
 //const int g_num_loops	= 37;		// 1us
 
 
 // General Settings
 const int g_num_threads = 4;		// Number of threads to use in the VGJS
-const int g_num_jobs	= 100000;	// Number of work jobs to create when testing work()
-const int g_num_seconds = 20;		// Number of seconds to run a timed Benchmark
+const int g_num_seconds = 10;		// Number of seconds to run a fixed-time benchmark
+const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
 
-// Start selected single Benchmarks
-Coro<> startSingleBenchmarks(const int num_loops, const int num_jobs) {
+// Start selected fixed-size Benchmarks
+Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
 	
-	co_await [=]() {workFunc::benchmarkWork(num_loops, num_jobs);};
-	co_await 		workCoro::benchmarkWork(num_loops, num_jobs);
+	co_await [=]() {workFunc::benchmarkWorkWithFixedSize(num_loops, num_jobs);};
+	co_await 		workCoro::benchmarkWorkWithFixedSize(num_loops, num_jobs);
 	
-	co_await [ ]() {mandelbrotFunc::test();};
-	co_await 		mandelbrotCoro::test();
-	co_await [ ]() {mctsFunc::test();};
-	co_await 		mctsCoro::test();
+	//co_await [ ]() {mandelbrotFunc::test();};
+	//co_await 		mandelbrotCoro::test();
+	//co_await [ ]() {mctsFunc::test();};
+	//co_await 		mctsCoro::test();
 
-	std::cout << std::endl <<	"Number of Threads used in VGJS: " << g_num_threads << std::endl;
-	vgjs::terminate();
 	co_return;
 }
 
-// Start a selected timed Benchmark
-Coro<> startTimedBenchmark(const int num_loops, const int num_jobs, const int num_sec) {
+// Start selected fixed-time Benchmarks
+Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const int num_sec) {
 
-	// Create time point N seconds from now
-	std::chrono::time_point<std::chrono::system_clock> end;
-	end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
+	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec);};
+	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec);
 
-	// workFunc and workCoro for Speedup Testing - don't exist right now
-	//schedule([=]() {workFunc::benchmarkTimedWork(num_loops, num_jobs, end); });
-	//schedule(workCoro::benchmarkTimedWork(num_loops, num_jobs, end));
+	co_return;
+}
+
+Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds) {
+
+	co_await startFixedSizeBenchmarks(num_loops, num_jobs);
+	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds);
+
+	std::cout << std::endl << "Number of Threads used in VGJS: " << g_num_threads << std::endl;
+
+	// Test Lock-free queue
+	//schedule([]() {lock_free_queue::test(); });
 
 	vgjs::terminate();
 	co_return;
@@ -74,28 +81,23 @@ void startGoogleBenchmarks(const int num_loops) {
 	// Benchmarks as variables
 	auto work_benchmark = [](benchmark::State& state) { BM_Work(state); };
 
-	
-	benchmark::RegisterBenchmark("work()", work_benchmark)->MeasureProcessCPUTime()->Unit(benchmark::kMicrosecond)->Arg(num_loops);
+
+	benchmark::RegisterBenchmark("work()", work_benchmark)->MeasureProcessCPUTime()->Unit(benchmark::kMicrosecond)->Arg(num_loops);		// Benchmark work function for speedup tests
 	benchmark::Initialize(&argc, argv);
 	benchmark::RunSpecifiedBenchmarks();
+	std::cout << std::endl;
 }
 
 int main() {
 
-	// Google Benchmarks
+	// Benchmark Functions
 	startGoogleBenchmarks(g_num_loops);
 
 	JobSystem::instance(g_num_threads);
 	//enable_logging();
 
-	// Timed Benchmarks - don't work right now
-	//schedule([]() {startTimedBenchmark(g_num_loops, g_num_jobs, g_num_seconds); });
-
-	// Single Benchmarks
-	schedule(startSingleBenchmarks(g_num_loops, g_num_jobs));
-
-	// Test Lock-free queue
-	//schedule([]() {lock_free_queue::test(); });
+	// Benchmark JobSystem Tests
+	schedule(startJobSystemBenchmarks(g_num_loops, g_num_jobs, g_num_seconds));
 
 	wait_for_termination();
 }
