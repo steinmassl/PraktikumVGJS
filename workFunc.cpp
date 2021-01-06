@@ -56,7 +56,7 @@ namespace workFunc {
     }
 
     // Benchmark work until time runs out
-    void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec) {
+    void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
         std::chrono::time_point<std::chrono::system_clock> end;
         end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
 
@@ -66,6 +66,14 @@ namespace workFunc {
             std::cout << std::endl << "   Test: workFunc (Fixed Time)"  << std::endl;
             std::cout <<              "   Number of calls:       "      << g_call_count << std::endl;
             std::cout <<              "   Mean execution time:   "      << g_total_work_runtime.count() / g_call_count << " ms" << std::endl;
+
+            std::ofstream outdata;
+            std::string file_name("results/workFunc" + std::to_string(num_threads) + ".txt");
+            outdata.open(file_name, std::ios_base::app);
+            if (outdata) {
+                outdata << g_total_work_runtime.count() / g_call_count << "   (Number of loops: " << num_loops << ")" << std::endl;
+            }
+            outdata.close();
         });
     }
 }

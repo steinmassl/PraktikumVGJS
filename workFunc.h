@@ -9,7 +9,7 @@ namespace workFunc {
 
 	void work(const int);
 	void benchmarkWorkWithFixedSize(const int, const int);
-	void benchmarkWorkWithFixedTime(const int, const int, const int);
+	void benchmarkWorkWithFixedTime(const int, const int, const int, const int);
 }
 
 void BM_Work(benchmark::State&);

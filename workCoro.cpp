@@ -55,7 +55,7 @@ namespace workCoro {
     }
 
     // Benchmark work until time runs out (similar design to workFunc variant to mitigate overhead differences)
-    Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec) {
+    Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
         std::chrono::time_point<std::chrono::system_clock> end;
         end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
 
@@ -64,5 +64,13 @@ namespace workCoro {
         std::cout << std::endl <<   "   Test: workCoro (Fixed Time)"    << std::endl;
         std::cout <<                "   Number of calls:       "        << g_call_count << std::endl;
         std::cout <<                "   Mean execution time:   "        << g_total_work_runtime.count() / g_call_count << " ms" << std::endl;
+
+        std::ofstream outdata;
+        std::string file_name("results/workCoro" + std::to_string(num_threads) + ".txt");
+        outdata.open(file_name, std::ios_base::app);
+        if (outdata) {
+            outdata << g_total_work_runtime.count() / g_call_count << "   (Number of loops: " << num_loops << ")" << std::endl;
+        }
+        outdata.close();
     }
 }

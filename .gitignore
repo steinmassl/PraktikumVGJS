@@ -13,3 +13,4 @@ log.json
 mandelbrotFunc.ppm
 mandelbrotCoro.ppm
 /build/
+/results/

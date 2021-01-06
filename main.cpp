@@ -29,7 +29,7 @@ const int g_num_loops	= 60;		// 2us		// Laptop
 
 // General Settings
 const int g_num_threads = 4;		// Number of threads to use in the VGJS
-const int g_num_seconds = 10;		// Number of seconds to run a fixed-time benchmark
+const int g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
 const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
@@ -49,18 +49,20 @@ Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
 }
 
 // Start selected fixed-time Benchmarks
-Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const int num_sec) {
+Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
 
-	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec);};
-	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec);
+	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);};
+	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);
+
+	//
 
 	co_return;
 }
 
-Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds) {
+Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds, const int num_threads) {
 
 	co_await startFixedSizeBenchmarks(num_loops, num_jobs);
-	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds);
+	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
 
 	std::cout << std::endl << "Number of Threads used in VGJS: " << g_num_threads << std::endl;
 
@@ -97,7 +99,7 @@ int main() {
 	//enable_logging();
 
 	// Benchmark JobSystem Tests
-	schedule(startJobSystemBenchmarks(g_num_loops, g_num_jobs, g_num_seconds));
+	schedule(startJobSystemBenchmarks(g_num_loops, g_num_jobs, g_num_seconds, g_num_threads));
 
 	wait_for_termination();
 }
