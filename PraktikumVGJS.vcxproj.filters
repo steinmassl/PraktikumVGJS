@@ -68,5 +68,11 @@
     <ClInclude Include="mctsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="VEGameJobSystemLockless.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VECoroLockless.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

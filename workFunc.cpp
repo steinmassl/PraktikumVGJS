@@ -12,6 +12,7 @@ namespace workFunc {
 
     // Benchmark a certain number of work calls
     void benchmarkWorkWithFixedSize(const int num_loops, const int num_jobs) {
+        std::cout << "workFunc" << std::endl;
         n_pmr::vector<std::function<void(void)>> vec;
         for (int i = 0; i < num_jobs; i++) {
             vec.emplace_back([=]() {work(num_loops); });
