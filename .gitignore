@@ -2,6 +2,7 @@ main
 perf.data
 perf.data.old
 /x64/
+PraktikumVGJSTest/x64/
 /.vs/PraktikumVGJS/v16/ipch
 /.vs/PraktikumVGJS/v16/Browse.VC.db
 /.vs/PraktikumVGJS/v16/Solution.VC.db

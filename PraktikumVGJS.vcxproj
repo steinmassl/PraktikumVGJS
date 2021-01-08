@@ -170,6 +170,7 @@
     <ClInclude Include="VECoroLockless.h" />
     <ClInclude Include="VEGameJobSystem.h" />
     <ClInclude Include="VEGameJobSystemLockless.h" />
+    <ClInclude Include="vgjs.h" />
     <ClInclude Include="workCoro.h" />
     <ClInclude Include="workFunc.h" />
   </ItemGroup>

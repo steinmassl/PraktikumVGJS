@@ -41,12 +41,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VECoro.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VEGameJobSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="workFunc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,6 +66,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VECoroLockless.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vgjs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VEGameJobSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VECoro.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

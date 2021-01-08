@@ -13,7 +13,6 @@ namespace workCoro {
 
     // Benchmark multiple runs of workCoro
     Coro<> benchmarkWorkWithFixedSize(const int num_loops, const int num_jobs) {
-        std::cout << "workCoro" << std::endl;
         n_pmr::vector<Coro<>> vec;
         vec.reserve(num_jobs);
         for (int i = 0; i < num_jobs; i++) {

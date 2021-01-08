@@ -1,8 +1,4 @@
-//#include "VEGameJobSystem.h"
-//#include "VECoro.h"
-
-#include "VEGameJobSystemLockless.h"
-#include "VECoroLockless.h"
+#include "vgjs.h"
 
 #include "benchmark.h"
 
@@ -32,8 +28,8 @@ const int g_num_loops	= 60;		// 2us		// Laptop
 
 
 // General Settings
-const int g_num_threads = 1;		// Number of threads to use in the VGJS
-const int g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
+const int g_num_threads = 4;		// Number of threads to use in the VGJS
+const int g_num_seconds = 10;		// Number of seconds to run a fixed-time benchmark
 const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
@@ -41,7 +37,7 @@ const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed
 // Start selected fixed-size Benchmarks
 Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
 	
-	//co_await [=]() {workFunc::benchmarkWorkWithFixedSize(num_loops, num_jobs);};
+	co_await [=]() {workFunc::benchmarkWorkWithFixedSize(num_loops, num_jobs);};
 	co_await 		workCoro::benchmarkWorkWithFixedSize(num_loops, num_jobs);
 	
 	//co_await [ ]() {mandelbrotFunc::test();};
@@ -66,7 +62,7 @@ Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const i
 Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds, const int num_threads) {
 
 	co_await startFixedSizeBenchmarks(num_loops, num_jobs);
-	//co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
+	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
 
 	std::cout << std::endl << "Number of Threads used in VGJS: " << g_num_threads << std::endl;
 

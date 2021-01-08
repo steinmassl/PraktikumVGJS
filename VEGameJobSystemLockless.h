@@ -178,7 +178,6 @@ namespace vgjs {
         }
 
         void reset() noexcept {         //call only if you want to wipe out the Job data
-            //m_next = nullptr;           //e.g. when recycling from a used Jobs queue
             m_children = 1;
             m_parent = nullptr;
             m_continuation = nullptr;
@@ -311,8 +310,6 @@ namespace vgjs {
             pointer_t<JOB> head;
             while (true) {
                 head = m_head.load();
-                if (head.ptr == nullptr)
-                    return false;
                 pointer_t<JOB> tail = m_tail.load();
                 pointer_t<JOB> next = head.ptr->next.load();
 
@@ -551,27 +548,25 @@ namespace vgjs {
             thread_local uint32_t noop = NOOP;                               //number of empty loops until threads sleeps
             while (!m_terminate) {			                                //Run until the job system is terminated
                 bool successful_pop = m_local_queues[m_thread_index.value].pop(m_current_job);       //try get a job from the local queue
-                if ((m_current_job == nullptr) || !successful_pop) {
+                if (m_current_job == nullptr || !successful_pop) {
                     successful_pop = m_global_queues[m_thread_index.value].pop(m_current_job);  //try get a job from the global queue
                 }
-                if(successful_pop)
-                    //std::cout << "Popped Global" << std::endl;
-                if ((m_current_job == nullptr) || !successful_pop) {                             //try steal job from another thread
+
+                if (m_current_job == nullptr || !successful_pop) {                             //try steal job from another thread
                     if (++next >= m_thread_count) next = 0;
                     successful_pop = m_global_queues[next].pop(m_current_job);
                 }
 
-                if ((m_current_job != nullptr) && successful_pop) {
+                if (m_current_job != nullptr && successful_pop) {
                     std::chrono::high_resolution_clock::time_point t1, t2;	///< execution start and end
 
                     if (is_logging()) {
-                        t1 = std::chrono::high_resolution_clock::now();	//time of finishing;
+                        t1 = std::chrono::high_resolution_clock::now();	//time of starting;
                     }
 
                     auto is_function = m_current_job->is_function();      //save certain info since a coro might be destroyed
                     auto type = m_current_job->m_type;
                     auto id = m_current_job->m_id;
-                    //std::cout << "Executing" << std::endl;
 
                     (*m_current_job)();   //if any job found execute it - a coro might be destroyed here!
 

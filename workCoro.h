@@ -1,7 +1,6 @@
 #pragma once
 
-#include "VEGameJobSystem.h"
-#include "VECoro.h"
+#include "vgjs.h"
 
 using namespace vgjs;
 
