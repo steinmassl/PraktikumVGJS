@@ -18,6 +18,32 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PraktikumVGJS\lockfreeQueueTest.cpp" />
+    <ClCompile Include="PraktikumVGJS\main.cpp" />
+    <ClCompile Include="PraktikumVGJS\mandelbrotCoro.cpp" />
+    <ClCompile Include="PraktikumVGJS\mandelbrotFunc.cpp" />
+    <ClCompile Include="PraktikumVGJS\mctsCoro.cpp" />
+    <ClCompile Include="PraktikumVGJS\mctsFunc.cpp" />
+    <ClCompile Include="PraktikumVGJS\workCoro.cpp" />
+    <ClCompile Include="PraktikumVGJS\workFunc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PraktikumVGJS\lockfreeQueueTest.h" />
+    <ClInclude Include="PraktikumVGJS\mandelbrotCoro.h" />
+    <ClInclude Include="PraktikumVGJS\mandelbrotFunc.h" />
+    <ClInclude Include="PraktikumVGJS\mctsCoro.h" />
+    <ClInclude Include="PraktikumVGJS\mctsFunc.h" />
+    <ClInclude Include="PraktikumVGJS\mctsGame.h" />
+    <ClInclude Include="PraktikumVGJS\mctsStructs.h" />
+    <ClInclude Include="PraktikumVGJS\VECoro.h" />
+    <ClInclude Include="PraktikumVGJS\VECoroLockfree.h" />
+    <ClInclude Include="PraktikumVGJS\VEGameJobSystem.h" />
+    <ClInclude Include="PraktikumVGJS\VEGameJobSystemLockfree.h" />
+    <ClInclude Include="PraktikumVGJS\vgjs.h" />
+    <ClInclude Include="PraktikumVGJS\workCoro.h" />
+    <ClInclude Include="PraktikumVGJS\workFunc.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{7C9354C9-25BF-46F2-B234-58B8E3A8D738}</ProjectGuid>
@@ -150,32 +176,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="lockfreeQueueTest.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="workCoro.cpp" />
-    <ClCompile Include="workFunc.cpp" />
-    <ClCompile Include="mandelbrotCoro.cpp" />
-    <ClCompile Include="mandelbrotFunc.cpp" />
-    <ClCompile Include="mctsCoro.cpp" />
-    <ClCompile Include="mctsFunc.cpp" />
-    <ClCompile Include="mctsGame.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="lockfreeQueueTest.h" />
-    <ClInclude Include="mandelbrotCoro.h" />
-    <ClInclude Include="mandelbrotFunc.h" />
-    <ClInclude Include="mctsCoro.h" />
-    <ClInclude Include="mctsFunc.h" />
-    <ClInclude Include="mctsStructs.h" />
-    <ClInclude Include="VECoro.h" />
-    <ClInclude Include="VECoroLockfree.h" />
-    <ClInclude Include="VEGameJobSystem.h" />
-    <ClInclude Include="VEGameJobSystemLockfree.h" />
-    <ClInclude Include="vgjs.h" />
-    <ClInclude Include="workCoro.h" />
-    <ClInclude Include="workFunc.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
