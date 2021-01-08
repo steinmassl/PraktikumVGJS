@@ -3,11 +3,11 @@
 // Abstracted VGJS includes to toggle them easily
 
 // Toggle Queue type here
-#define LOCKLESS 0
+#define LOCKFREE 0
 
-#if (LOCKLESS)
-	#include "VEGameJobSystemLockless.h"
-	#include "VECoroLockless.h"
+#if (LOCKFREE)
+	#include "VEGameJobSystemLockfree.h"
+	#include "VECoroLockfree.h"
 #else
 	#include "VEGameJobSystem.h"
 	#include "VECoro.h"

@@ -247,10 +247,10 @@ namespace vgjs {
 
 
     /**
-    * \brief General FIFO queue class.
+    * \brief Lockless FIFO queue class.
     *
-    * The queue allows for multiple producers multiple consumers. It uses a lightweight
-    * atomic flag as lock. 
+    * The queue allows for multiple producers multiple consumers. 
+    * Lockless but suffering from use-after-delete problem.  
     */
     template<typename JOB = Job_base>
     class JobQueue {
@@ -263,8 +263,8 @@ namespace vgjs {
 
         JobQueue() {
             node_t<JOB>* start = new node_t<JOB>();
-            m_head.store(start);
-            m_tail.store(start);
+            m_head.store(start, std::memory_order_release);
+            m_tail.store(start, std::memory_order_release);
         }
 
         JobQueue(const JobQueue<JOB>& queue) noexcept : JobQueue() {}
@@ -284,9 +284,9 @@ namespace vgjs {
             new_node->job = job_to_push;
             pointer_t<JOB> tail;
             while (true) {
-                tail = m_tail.load();
-                pointer_t<JOB> next = tail.ptr->next.load();
-                if (tail == m_tail.load()) {
+                tail = m_tail.load(std::memory_order_acquire);
+                pointer_t<JOB> next = tail.ptr->next.load(std::memory_order_acquire);
+                if (tail == m_tail.load(std::memory_order_acquire)) {
                     if (next.ptr == nullptr) {
                         bool successful_cas = tail.ptr->next.compare_exchange_weak(next, pointer_t(new_node, next.count + 1));
                         if (successful_cas) {
@@ -309,9 +309,9 @@ namespace vgjs {
         bool pop(JOB*& popped_job) {
             pointer_t<JOB> head;
             while (true) {
-                head = m_head.load();
-                pointer_t<JOB> tail = m_tail.load();
-                pointer_t<JOB> next = head.ptr->next.load();
+                head = m_head.load(std::memory_order_acquire);
+                pointer_t<JOB> tail = m_tail.load(std::memory_order_acquire);
+                pointer_t<JOB> next = head.ptr->next.load(std::memory_order_acquire);
 
                 if (head == m_head.load()) {
                     if (head.ptr == tail.ptr) {

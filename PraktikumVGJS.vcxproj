@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lockfreeQueueTest.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="workCoro.cpp" />
     <ClCompile Include="workFunc.cpp" />
@@ -161,15 +162,16 @@
     <ClCompile Include="mctsGame.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lockfreeQueueTest.h" />
     <ClInclude Include="mandelbrotCoro.h" />
     <ClInclude Include="mandelbrotFunc.h" />
     <ClInclude Include="mctsCoro.h" />
     <ClInclude Include="mctsFunc.h" />
     <ClInclude Include="mctsStructs.h" />
     <ClInclude Include="VECoro.h" />
-    <ClInclude Include="VECoroLockless.h" />
+    <ClInclude Include="VECoroLockfree.h" />
     <ClInclude Include="VEGameJobSystem.h" />
-    <ClInclude Include="VEGameJobSystemLockless.h" />
+    <ClInclude Include="VEGameJobSystemLockfree.h" />
     <ClInclude Include="vgjs.h" />
     <ClInclude Include="workCoro.h" />
     <ClInclude Include="workFunc.h" />

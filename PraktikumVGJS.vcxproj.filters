@@ -39,6 +39,9 @@
     <ClCompile Include="mctsGame.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="lockfreeQueueTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="workFunc.h">
@@ -62,12 +65,6 @@
     <ClInclude Include="mctsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VEGameJobSystemLockless.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VECoroLockless.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="vgjs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,6 +72,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VECoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VEGameJobSystemLockfree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VECoroLockfree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lockfreeQueueTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

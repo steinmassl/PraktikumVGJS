@@ -9,7 +9,7 @@
 #include "mctsFunc.h"
 #include "mctsCoro.h"
 
-//#include "Lock-free_queue_test.h" // Bug in Visual Studio, already fixed according to Microsoft, but not yet patched
+#include "lockfreeQueueTest.h"
 
  
 // Amount of loops determines length of work() function
@@ -29,7 +29,7 @@ const int g_num_loops	= 60;		// 2us		// Laptop
 
 // General Settings
 const int g_num_threads = 4;		// Number of threads to use in the VGJS
-const int g_num_seconds = 10;		// Number of seconds to run a fixed-time benchmark
+const int g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
 const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
