@@ -22,3 +22,5 @@ results/bench.cfg.out
 results/bench.cfg.report
 results/raw*.txt
 packages/
+PraktikumVGJS.vcxproj.filters
+PraktikumVGJS.vcxproj.user
