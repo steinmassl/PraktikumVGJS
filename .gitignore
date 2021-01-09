@@ -14,8 +14,11 @@ log.json
 mandelbrotFunc.ppm
 mandelbrotCoro.ppm
 build/
-results/
 external/
 CMakeFiles/
 Makefile
 cmake_install.cmake
+results/bench.cfg.out
+results/bench.cfg.report
+results/raw*.txt
+packages/

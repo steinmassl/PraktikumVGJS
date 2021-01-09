@@ -1,0 +1,10 @@
+This directory contains many samples data for learning how to use the Speedup-Test
+
+1/ manual_samples: is the directory containing the example of the manual of the Speedup-Test
+2/ SPEC2000: data collected from running spec2000 applications: comparing between the performances of -O0 and -O3 gcc flag. 
+3/ SPEC2006: data collected from running spec2006 applications: comparing between the performances of -O0 and -O3 gcc flag, for reference and test data input.
+4/ SPECOMP2001: data collected from running spec open MP applications: applications are compiled with -O3 of gcc and icc. We compare the performance between the parallel version (1, 2, 4, 6 and 8 threads, compiled with -O3),  vs. the sequential version (-O3, no open mp threads).
+
+The collected data of SPEC2000, SPEC2006 and SPECOMP2001 have been used in the following experimental study:
+Abdelhafid Mazouz and Sid-Ahmed-Ali Touati and Denis Barthou. Study of Variations of Native Program Execution Times on Multi-Core Architectures. IEEE International Workshop on Multi-Core Computing Systems (MuCoCoS 2010). Krakow, Poland, February 15, 2010.
+

@@ -13,24 +13,24 @@
 
  
 // Amount of loops determines length of work() function
-//const int g_num_loops	= 365000;	// 10ms
-//const int g_num_loops	= 185000;	// 5ms
-//const int g_num_loops	= 36500;	// 1ms
-//const int g_num_loops	= 3650;		// 100us
-//const int g_num_loops	= 365;		// 10us 
-//const int g_num_loops	= 253;		// 7us
-//const int g_num_loops	= 185;		// 5us
-//const int g_num_loops	= 146;		// 4us		// Threshold for C++ function jobs (Win) 8c16t
-//const int g_num_loops	= 110;		// 3us
-//const int g_num_loops	= 73;		// 2us		// Threshold for Coro jobs (Win) 8c16t
-const int g_num_loops	= 60;		// 2us		// Laptop
-//const int g_num_loops	= 37;		// 1us
+//static constexpr uint32_t g_num_loops	= 365000;	// 10ms
+//static constexpr uint32_t g_num_loops	= 185000;	// 5ms
+//static constexpr uint32_t g_num_loops	= 36500;	// 1ms
+//static constexpr uint32_t g_num_loops	= 3650;		// 100us
+//static constexpr uint32_t g_num_loops	= 365;		// 10us 
+//static constexpr uint32_t g_num_loops	= 253;		// 7us
+//static constexpr uint32_t g_num_loops	= 185;		// 5us
+static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ function jobs (Win) 8c16t
+//static constexpr uint32_t g_num_loops	= 110;		// 3us
+//static constexpr uint32_t g_num_loops	= 73;		// 2us		// Threshold for Coro jobs (Win) 8c16t
+//static constexpr uint32_t g_num_loops	= 60;		// 2us		// Laptop
+//static constexpr uint32_t g_num_loops	= 37;		// 1us
 
 
 // General Settings
-const int g_num_threads = 4;		// Number of threads to use in the VGJS
-const int g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
-const int g_num_jobs	= 100000;	// Number of work jobs to create when doing fixed-size benchmarks
+static constexpr uint32_t g_num_threads = 4;		// Number of threads to use in the VGJS
+static constexpr uint32_t g_num_seconds = 1;		// Number of seconds to run a fixed-time benchmark
+static constexpr uint32_t g_num_jobs	= 30000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
 
@@ -64,10 +64,14 @@ Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const i
 	co_await startFixedSizeBenchmarks(num_loops, num_jobs);
 	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
 
-	std::cout << std::endl << "Number of Threads used in VGJS: " << g_num_threads << std::endl;
+	std::cout << std::endl
+			  << "Threads used in VGJS: " << g_num_threads << std::endl;
+	std::cout << "Jobs per batch:       " << num_jobs << std::endl;
+	std::cout << "Loops in work():      " << num_loops << std::endl;
+	std::cout << std::endl;
 
 	// Test Lock-free queue
-	//schedule([]() {lock_free_queue::test(); });
+	//schedule([]() {lock_free::test(); });
 
 	vgjs::terminate();
 	co_return;

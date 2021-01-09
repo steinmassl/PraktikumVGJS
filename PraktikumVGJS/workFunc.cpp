@@ -10,6 +10,107 @@ namespace workFunc {
         }
     }
 
+    // Store fixed-time benchmark data
+    uint32_t									g_call_count = 0;               // Number of times timedRun has been called
+    std::chrono::duration<double, std::micro>	g_total_workload_runtime = {};  // Sum of batch execution times
+    std::chrono::duration<double, std::micro>	g_total_timed_runtime = {};     // Sum of timedRun execution times (check overhead of surrounding code)
+    std::vector<double>                         g_runtime_vec;                  // Vector of batch execution times for processing
+
+
+    // Recursively benchmark work until time runs out
+    void timedRun(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
+        auto timedRun_start = std::chrono::high_resolution_clock::now();
+        
+        g_call_count++;
+        
+        n_pmr::vector<std::function<void(void)>> vec;        
+        vec.reserve(num_jobs);
+        for (int i = 0; i < num_jobs; i++) {
+            vec.emplace_back([=]() {work(num_loops); });
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+        schedule(vec);
+
+        continuation([=]() {
+            
+            auto end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> elapsed_work_microseconds = end - start;
+            g_runtime_vec.push_back(elapsed_work_microseconds.count());
+            g_total_workload_runtime += elapsed_work_microseconds;
+
+            auto timedRun_end = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double, std::micro> elapsed_timedRun_microseconds = timedRun_end - timedRun_start;
+            g_total_timed_runtime += elapsed_timedRun_microseconds;
+
+            if (std::chrono::system_clock::now() < end_of_benchmark) {
+                timedRun(num_loops, num_jobs, end_of_benchmark);
+            }
+        });
+    }
+
+    // Benchmark work until time runs out
+    void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
+        std::chrono::time_point<std::chrono::system_clock> end_of_benchmark;
+        end_of_benchmark = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
+
+        schedule([=]() { timedRun(num_loops, num_jobs, end_of_benchmark); });
+
+        continuation([=]() {
+            std::sort(g_runtime_vec.begin(), g_runtime_vec.end()); // To find median
+            size_t size = g_runtime_vec.size();
+            double batch_median = size % 2 == 0 ? (g_runtime_vec.at(size / 2 - 1) + g_runtime_vec.at(size / 2)) / 2 : g_runtime_vec.at(size / 2);
+
+            // Calculate values for a single job
+            double work_mean = g_total_workload_runtime.count() / (g_call_count * num_jobs);
+            double work_median = batch_median / num_jobs;
+            double timedRun_median = g_total_timed_runtime.count() / (g_call_count * num_jobs);
+
+            std::cout << std::endl
+                      << "    Test: workFunc (Fixed Time)" << std::endl;
+            std::cout << "        Number of calls:                  " << g_call_count << std::endl;
+            std::cout << "        Mean execution time (work):       " << work_mean << " us" << std::endl;
+            std::cout << "        Median execution time (work):     " << work_median << " us" << std::endl;
+            std::cout << "        Mean execution time (timedRun):   " << timedRun_median << " us" << std::endl;
+
+            // Output files
+            std::string raw_file("results/rawWorkFunc" + std::to_string(num_threads) + ".txt");  // Raw data
+            std::string summary_file("results/workFunc" + std::to_string(num_threads) + ".txt"); // Summaries
+
+            std::ofstream outdata;
+
+            // Write execution times of batches to file so they can be processed
+            outdata.open(raw_file);
+            if (outdata)
+            {
+                for (auto &batch_execution_time : g_runtime_vec)
+                {
+                    outdata << batch_execution_time / num_jobs << std::endl;
+                }
+            }
+            outdata.close();
+
+            // Append summary of benchmark to file
+            outdata.open(summary_file, std::ios_base::app);
+            if (outdata)
+            {
+                outdata << std::endl
+                        << "Test: workFunc (Fixed Time)" << std::endl;
+                outdata << "    Threads used in VJGS:             " << num_threads << std::endl;
+                outdata << "    Number of calls:                  " << g_call_count << std::endl;
+                outdata << "    Mean execution time (work):       " << work_mean << " us" << std::endl;
+                outdata << "    Median execution time (work):     " << work_median << " us" << std::endl;
+                outdata << "    Mean execution time (timedRun):   " << timedRun_median << " us" << std::endl;
+                outdata << std::endl
+                        << "    Loops in work():                  " << num_loops << std::endl;
+                outdata << "    Jobs per batch:                   " << num_jobs << std::endl;
+                outdata << "    Platform:                         " << g_platform << std::endl;
+                outdata << "    CPU hardware threads:             " << g_cpu_hardware_threads << std::endl;
+            }
+            outdata.close();
+        });
+    }
+
     // Benchmark a certain number of work calls
     void benchmarkWorkWithFixedSize(const int num_loops, const int num_jobs) {
         n_pmr::vector<std::function<void(void)>> vec;
@@ -22,58 +123,10 @@ namespace workFunc {
 
         continuation([=]() {
             auto end = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
+            std::chrono::duration<double, std::micro> elapsed_microseconds = end - start;
 
-            std::cout << std::endl <<   "   Test: workFunc (Fixed Size)"    << std::endl;
-            std::cout <<                "   Execution time:   "             << elapsed_milliseconds.count() << " ms" << std::endl;
-        });
-    }
-
-    // Store fixed-time benchmark data
-    int											g_call_count = 0;
-    std::chrono::duration<double, std::milli>	g_total_work_runtime = {};
-
-    // Recursively benchmark work until time runs out
-    void timedRun(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
-        g_call_count++;
-        n_pmr::vector<std::function<void(void)>> vec;
-        vec.reserve(num_jobs);
-        for (int i = 0; i < num_jobs; i++) {
-            vec.emplace_back([=]() {work(num_loops); });
-        }
-
-        auto start = std::chrono::high_resolution_clock::now();
-        schedule(vec);
-
-        continuation([=]() {
-            auto end = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double, std::milli> elapsed_milliseconds = end - start;
-            g_total_work_runtime += elapsed_milliseconds;
-            if (std::chrono::system_clock::now() < end_of_benchmark) {
-                timedRun(num_loops, num_jobs, end_of_benchmark);
-            }
-        });
-    }
-
-    // Benchmark work until time runs out
-    void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
-        std::chrono::time_point<std::chrono::system_clock> end;
-        end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
-
-        schedule([=]() {timedRun(num_loops, num_jobs, end); });
-
-        continuation([=]() {
-            std::cout << std::endl << "   Test: workFunc (Fixed Time)"  << std::endl;
-            std::cout <<              "   Number of calls:       "      << g_call_count << std::endl;
-            std::cout <<              "   Mean execution time:   "      << g_total_work_runtime.count() / g_call_count << " ms" << std::endl;
-
-            std::ofstream outdata;
-            std::string file_name("results/workFunc" + std::to_string(num_threads) + ".txt");
-            outdata.open(file_name, std::ios_base::app);
-            if (outdata) {
-                outdata << g_total_work_runtime.count() / g_call_count << "   (Number of loops: " << num_loops << ")" << std::endl;
-            }
-            outdata.close();
+            std::cout << std::endl <<   "    Test: workFunc (Fixed Size)"    << std::endl;
+            std::cout <<                "        Mean Execution time:              " << elapsed_microseconds.count() / num_jobs << " us" << std::endl;
         });
     }
 }
