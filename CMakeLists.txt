@@ -38,14 +38,14 @@ add_compile_options(-fcoroutines
                     )
 
 add_executable( main
-                main.cpp
-                workFunc.cpp
-                workCoro.cpp
-                mandelbrotFunc.cpp
-                mandelbrotCoro.cpp
-                mctsFunc.cpp
-                mctsCoro.cpp
-                Lock-free_queue_test.cpp
+                PraktikumVGJS/main.cpp
+                PraktikumVGJS/workFunc.cpp
+                PraktikumVGJS/workCoro.cpp
+                PraktikumVGJS/mandelbrotFunc.cpp
+                PraktikumVGJS/mandelbrotCoro.cpp
+                PraktikumVGJS/mctsFunc.cpp
+                PraktikumVGJS/mctsCoro.cpp
+                PraktikumVGJS/lockfreeQueueTest.cpp
                 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
