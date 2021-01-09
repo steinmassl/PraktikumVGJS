@@ -29,7 +29,7 @@ static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ funct
 
 // General Settings
 static constexpr uint32_t g_num_threads = 4;		// Number of threads to use in the VGJS
-static constexpr uint32_t g_num_seconds = 1;		// Number of seconds to run a fixed-time benchmark
+static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
 static constexpr uint32_t g_num_jobs	= 30000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 

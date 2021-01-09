@@ -74,8 +74,8 @@ namespace workFunc {
             std::cout << "        Mean execution time (timedRun):   " << timedRun_median << " us" << std::endl;
 
             // Output files
-            std::string raw_file("results/rawWorkFunc" + std::to_string(num_threads) + ".txt");  // Raw data
-            std::string summary_file("results/workFunc" + std::to_string(num_threads) + ".txt"); // Summaries
+            std::string raw_file("PraktikumVGJS/results/rawWorkFunc" + std::to_string(num_threads) + ".txt");  // Raw data
+            std::string summary_file("PraktikumVGJS/results/workFunc" + std::to_string(num_threads) + ".txt"); // Summaries
 
             std::ofstream outdata;
 

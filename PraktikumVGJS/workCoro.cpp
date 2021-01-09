@@ -69,8 +69,8 @@ namespace workCoro {
         std::cout << "        Mean execution time (timedRun):   " << timedRun_median << " us" << std::endl;
 
         // Output files
-        std::string raw_file("results/rawWorkCoro" + std::to_string(num_threads) + ".txt");  // Raw data
-        std::string summary_file("results/workCoro" + std::to_string(num_threads) + ".txt"); // Summaries
+        std::string raw_file("PraktikumVGJS/results/rawWorkCoro" + std::to_string(num_threads) + ".txt");  // Raw data
+        std::string summary_file("PraktikumVGJS/results/workCoro" + std::to_string(num_threads) + ".txt"); // Summaries
 
         std::ofstream outdata;
 

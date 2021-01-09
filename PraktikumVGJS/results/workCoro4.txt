@@ -111,3 +111,15 @@ Test: workCoro (Fixed Time)
     Jobs per batch:                   30000
     Platform:                         Linux
     CPU hardware threads:             4
+
+Test: workCoro (Fixed Time)
+    Threads used in VJGS:             4
+    Number of calls:                  81
+    Mean execution time (work):       1.42383 us
+    Median execution time (work):     1.39822 us
+    Mean execution time (timedRun):   1.84906 us
+
+    Loops in work():                  146
+    Jobs per batch:                   30000
+    Platform:                         Win
+    CPU hardware threads:             4
