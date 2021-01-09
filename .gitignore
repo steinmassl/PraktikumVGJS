@@ -1,6 +1,5 @@
 main
-perf.data
-perf.data.old
+perf.data*
 x64/
 PraktikumVGJSTest/x64/
 .vs/PraktikumVGJS/v16/ipch
@@ -11,16 +10,14 @@ PraktikumVGJSTest/x64/
 .vs/VSWorkspaceState.json
 .vs/slnx.sqlite
 log.json
-mandelbrotFunc.ppm
-mandelbrotCoro.ppm
+mandelbrot*.ppm
 build/
 external/
 CMakeFiles/
 Makefile
 cmake_install.cmake
-results/bench.cfg.out
-results/bench.cfg.report
-results/raw*.txt
+PraktikumVGJS/results/bench.cfg.*
+PraktikumVGJS/results/raw*.txt
 packages/
 PraktikumVGJS.vcxproj.filters
 PraktikumVGJS.vcxproj.user
