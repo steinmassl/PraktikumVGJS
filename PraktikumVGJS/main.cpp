@@ -66,7 +66,6 @@ Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const i
 
 	std::cout << std::endl
 			  << "Threads used in VGJS: " << g_num_threads << std::endl;
-	std::cout << "Jobs per batch:       " << num_jobs << std::endl;
 	std::cout << "Loops in work():      " << num_loops << std::endl;
 	std::cout << std::endl;
 
@@ -86,7 +85,6 @@ void startGoogleBenchmarks(const int num_loops) {
 
 	// Benchmarks as variables
 	auto work_benchmark = [](benchmark::State& state) { BM_Work(state); };
-
 
 	benchmark::RegisterBenchmark("work()", work_benchmark)->MeasureProcessCPUTime()->Unit(benchmark::kMicrosecond)->Arg(num_loops);		// Benchmark work function for speedup tests
 	benchmark::Initialize(&argc, argv);

@@ -1,0 +1,24 @@
+
+Test: workFunc (Fixed Time)
+    Threads used in VJGS:             2
+    Number of calls:                  98
+    Mean execution time (work):       1.64553 us
+    Median execution time (work):     1.63975 us
+    Mean execution time (timedRun):   1.71791 us
+
+    Loops in work():                  146
+    Jobs per batch:                   30000
+    Platform:                         Linux
+    CPU hardware threads:             4
+
+Test: workFunc (Fixed Time)
+    Threads used in VJGS:             2
+    Number of calls:                  66
+    Mean execution time (work):       2.36607 us
+    Median execution time (work):     2.25246 us
+    Mean execution time (timedRun):   2.54777 us
+
+    Loops in work():                  146
+    Jobs per batch:                   30000
+    Platform:                         Linux
+    CPU hardware threads:             4

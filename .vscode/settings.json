@@ -92,5 +92,6 @@
         "forward_list": "cpp",
         "unordered_set": "cpp",
         "regex": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
