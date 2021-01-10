@@ -97,7 +97,7 @@ int main() {
 	// Benchmark Functions
 	startGoogleBenchmarks(g_num_loops);
 
-	JobSystem::instance(g_num_threads);
+	JobSystem::instance(thread_count(g_num_threads));
 	//enable_logging();
 
 	// Benchmark JobSystem Tests
