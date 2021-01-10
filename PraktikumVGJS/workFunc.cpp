@@ -48,6 +48,18 @@ namespace workFunc {
         });
     }
 
+    void measureCalls(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
+        g_call_count++;
+                g_vec.clear();
+        for (int i = 0; i < num_jobs; i++) {
+            g_vec.emplace_back([=]() {work(num_loops); });
+        }
+        schedule(g_vec);
+        if (std::chrono::system_clock::now() < end_of_benchmark) {
+            continuation([=]() {timedRun(num_loops, num_jobs, end_of_benchmark);});
+        }
+    }
+
     // Benchmark work until time runs out
     void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
         std::chrono::time_point<std::chrono::system_clock> end_of_benchmark;

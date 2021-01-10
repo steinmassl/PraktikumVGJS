@@ -44,6 +44,18 @@ namespace workCoro {
         co_return;
     }
 
+    Coro<> measureCalls(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
+        while (std::chrono::system_clock::now() < end_of_benchmark) {
+            g_call_count++;
+            g_vec.clear();
+            for (int i = 0; i < num_jobs; i++) {
+                g_vec.emplace_back(work(num_loops));
+            }
+            co_await g_vec;
+        }
+        co_return;
+    }
+
     // Benchmark work until time runs out (similar design to workFunc variant to mitigate overhead differences)
     Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
         std::chrono::time_point<std::chrono::system_clock> end;
