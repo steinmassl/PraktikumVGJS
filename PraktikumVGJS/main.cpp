@@ -30,12 +30,12 @@ static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ funct
 // General Settings
 static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
 static constexpr uint32_t g_num_seconds = 20;		// Number of seconds to run a fixed-time benchmark
-static constexpr uint32_t g_num_jobs	= 10000;	// Number of work jobs to create when doing fixed-size benchmarks
+static constexpr uint32_t g_num_jobs	= 25000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
 
 // Start selected fixed-size Benchmarks
-Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
+Coro<> startFixedSizeBenchmarks(const uint32_t num_loops, const uint32_t num_jobs) {
 	
 	co_await [=]() {workFunc::benchmarkWorkWithFixedSize(num_loops, num_jobs);};
 	co_await 		workCoro::benchmarkWorkWithFixedSize(num_loops, num_jobs);
@@ -49,7 +49,7 @@ Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
 }
 
 // Start selected fixed-time Benchmarks
-Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
+Coro<> startFixedTimeBenchmarks(const uint32_t num_loops, const uint32_t num_jobs, const uint32_t num_sec, const uint32_t num_threads) {
 
 	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);};
 	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads /*, std::allocator_arg, &g_global_mem */);
@@ -59,7 +59,7 @@ Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const i
 	co_return;
 }
 
-Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds, const int num_threads) {
+Coro<> startJobSystemBenchmarks(const uint32_t num_loops, const uint32_t num_jobs, const uint32_t num_seconds, const uint32_t num_threads) {
 
 	//co_await startFixedSizeBenchmarks(num_loops, num_jobs);
 	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
@@ -77,7 +77,7 @@ Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const i
 }
 
 // Register C++ functions as Benchmarks and run them
-void startGoogleBenchmarks(const int num_loops) {
+void startGoogleBenchmarks(const uint32_t num_loops) {
 
 	// Dummy arguments for benchmark::Initialize()
 	int argc = 0;

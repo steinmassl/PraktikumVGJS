@@ -6,8 +6,8 @@
 //A struct carrying information relevant to the MCTS algorithm - state of the game at a specific point
 struct State {
 	Game game;
-	unsigned int player = 0;		//the player who made the move that resulted in this state
-	unsigned int num_visits = 0;
+	uint32_t player = 0;		//the player who made the move that resulted in this state
+	uint32_t num_visits = 0;
 	double score = 0;				//shows how relevant this path is for the algorithm
 
 	State() {}

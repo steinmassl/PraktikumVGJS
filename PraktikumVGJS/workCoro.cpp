@@ -3,10 +3,10 @@
 namespace workCoro {
 
     // Do some work not optimized by the compiler
-    Coro<> work(const int num_loops /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
-        volatile unsigned long x = 0;
-        for (int i = 0; i < num_loops; i++) {
-            x = x + (unsigned long)std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    Coro<> work(const uint32_t num_loops /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
+        volatile uint64_t x = 0;
+        for (uint32_t i = 0; i < num_loops; i++) {
+            x = x + (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
         }
         co_return;
     }
@@ -19,14 +19,14 @@ namespace workCoro {
     n_pmr::vector<Coro<>> g_vec;    // Reuse vector for work jobs
 
     // Benchmark batches of work until time runs out 
-    Coro<> measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/ ) {
+    Coro<> measureAll(const uint32_t num_loops, const uint32_t num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/ ) {
         while (std::chrono::high_resolution_clock::now() < end_of_benchmark) {
             auto measureAll_start = std::chrono::high_resolution_clock::now();
             
             g_call_count++;
 
             g_vec.clear();
-            for (int i = 0; i < num_jobs; i++) {
+            for (uint32_t i = 0; i < num_jobs; i++) {
                 g_vec.emplace_back(work(num_loops /*, std::allocator_arg, mr*/));
             }
 
@@ -60,7 +60,7 @@ namespace workCoro {
     */
 
     // Benchmark work until time runs out (similar design to workFunc variant to mitigate overhead differences)
-    Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
+    Coro<> benchmarkWorkWithFixedTime(const uint32_t num_loops, const uint32_t num_jobs, const uint32_t num_sec, const uint32_t num_threads /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
         std::chrono::time_point<std::chrono::high_resolution_clock> end;
         end = std::chrono::high_resolution_clock::now() + std::chrono::seconds(num_sec);
 
@@ -132,10 +132,10 @@ namespace workCoro {
     }
 
     // Benchmark multiple runs of workCoro
-    Coro<> benchmarkWorkWithFixedSize(const int num_loops, const int num_jobs) {
+    Coro<> benchmarkWorkWithFixedSize(const uint32_t num_loops, const uint32_t num_jobs) {
         n_pmr::vector<Coro<>> vec;
         vec.reserve(num_jobs);
-        for (int i = 0; i < num_jobs; i++) {
+        for (uint32_t i = 0; i < num_jobs; i++) {
             vec.emplace_back(work(num_loops /*, std::allocator_arg, &g_global_mem*/));
         }
 
