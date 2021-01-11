@@ -5,8 +5,7 @@
 using namespace vgjs;
 
 namespace mandelbrotFunc {
-	void draw();
-	void calculatePixel(uint32_t, uint32_t);
-	void mandelbrotRecursive(uint32_t);
+
 	void test();
+	void benchmarkWithFixedTime(const uint32_t, const uint32_t);
 }

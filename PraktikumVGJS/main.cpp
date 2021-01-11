@@ -29,7 +29,7 @@ static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ funct
 
 // General Settings
 static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
-static constexpr uint32_t g_num_seconds = 20;		// Number of seconds to run a fixed-time benchmark
+static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
 static constexpr uint32_t g_num_jobs	= 25000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
@@ -40,10 +40,10 @@ Coro<> startFixedSizeBenchmarks(const uint32_t num_loops, const uint32_t num_job
 	co_await [=]() {workFunc::benchmarkWorkWithFixedSize(num_loops, num_jobs);};
 	co_await 		workCoro::benchmarkWorkWithFixedSize(num_loops, num_jobs);
 	
-	//co_await [ ]() {mandelbrotFunc::test();};
-	//co_await 		mandelbrotCoro::test();
-	//co_await [ ]() {mctsFunc::test();};
-	//co_await 		mctsCoro::test();
+	co_await [ ]() {mandelbrotFunc::test();};
+	co_await 		mandelbrotCoro::test();
+	co_await [ ]() {mctsFunc::test();};
+	co_await 		mctsCoro::test();
 
 	co_return;
 }
@@ -51,10 +51,11 @@ Coro<> startFixedSizeBenchmarks(const uint32_t num_loops, const uint32_t num_job
 // Start selected fixed-time Benchmarks
 Coro<> startFixedTimeBenchmarks(const uint32_t num_loops, const uint32_t num_jobs, const uint32_t num_sec, const uint32_t num_threads) {
 
-	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);};
-	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads /*, std::allocator_arg, &g_global_mem */);
+	//co_await[=]() { workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads); };
+	//co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads /*, std::allocator_arg, &g_global_mem */);
 
-	//
+	co_await[=]() { mandelbrotFunc::benchmarkWithFixedTime(num_sec, num_threads); };
+	//co_await	    mandelbrotCoro::benchmarkWithFixedTime(num_jobs, num_sec, num_threads);
 
 	co_return;
 }

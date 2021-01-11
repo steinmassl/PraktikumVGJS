@@ -9,7 +9,7 @@ namespace mandelbrotCoro {
 
 	const uint32_t MAX_ITERATIONS = 50;				// Maximum number of iterations per pixel
 
-	short pixels[WIDTH * HEIGHT];				// Array for pixel values while working
+	uint16_t pixels[WIDTH * HEIGHT];				// Store pixel values while working
 
 	// Create ppm file and write pixel values into it
 	Coro<> draw() {
@@ -19,7 +19,7 @@ namespace mandelbrotCoro {
 			mandelbrotImage << "P3\n" << WIDTH << " " << HEIGHT << " 255\n";		// PPM Header data
 			for (uint32_t i = 0; i < HEIGHT; i++) {
 				for (uint32_t j = 0; j < WIDTH; j++) {
-					short value = pixels[i * WIDTH + j];
+					uint16_t value = pixels[i * WIDTH + j];
 					mandelbrotImage << value << " " << value << " " << value << "\n";		// Write values from pixel storage into file
 				}
 			}

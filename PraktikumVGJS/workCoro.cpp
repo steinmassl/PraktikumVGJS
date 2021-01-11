@@ -124,7 +124,6 @@ namespace workCoro {
             outdata << "    Jobs per batch:                   " << num_jobs << std::endl;
             outdata << std::endl
                     << "    Loops in work():                  " << num_loops << std::endl;
-            outdata << "    Jobs per batch:                   " << num_jobs << std::endl;
             outdata << "    Platform:                         " << g_platform << std::endl;
             outdata << "    CPU hardware threads:             " << g_cpu_hardware_threads << std::endl;
         }
