@@ -28,9 +28,9 @@ static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ funct
 
 
 // General Settings
-static constexpr uint32_t g_num_threads = 4;		// Number of threads to use in the VGJS
+static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
 static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
-static constexpr uint32_t g_num_jobs	= 30000;	// Number of work jobs to create when doing fixed-size benchmarks
+static constexpr uint32_t g_num_jobs	= 10000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
 
@@ -61,7 +61,7 @@ Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const i
 
 Coro<> startJobSystemBenchmarks(const int num_loops, const int num_jobs, const int num_seconds, const int num_threads) {
 
-	co_await startFixedSizeBenchmarks(num_loops, num_jobs);
+	//co_await startFixedSizeBenchmarks(num_loops, num_jobs);
 	co_await startFixedTimeBenchmarks(num_loops, num_jobs, num_seconds, num_threads);
 
 	std::cout << std::endl

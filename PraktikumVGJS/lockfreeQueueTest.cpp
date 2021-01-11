@@ -119,7 +119,7 @@ namespace lock_free {
 		for (int i = 0; i < 16; i++) {
 			schedule([]() {
 				for (int j = 0; j < 1; j++) {
-                    Job* job = new Job();
+                    Job* job = new Job(n_pmr::new_delete_resource());
 					queue.push(job);
 				}
 			});

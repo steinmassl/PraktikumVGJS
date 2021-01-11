@@ -17,7 +17,7 @@ namespace workFunc {
 
     n_pmr::vector<std::function<void(void)>> g_vec;    // Reuse vector for work jobs
 
-    // Recursively benchmark work until time runs out
+    // Recursively batches of work until time runs out
     void measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
         auto measureAll_start = std::chrono::high_resolution_clock::now();
         

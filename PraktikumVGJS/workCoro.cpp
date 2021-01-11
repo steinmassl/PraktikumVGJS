@@ -18,7 +18,7 @@ namespace workCoro {
 
     n_pmr::vector<Coro<>> g_vec;    // Reuse vector for work jobs
 
-    // Benchmark work until time runs out 
+    // Benchmark batches of work until time runs out 
     Coro<> measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
         while (std::chrono::system_clock::now() < end_of_benchmark) {
             auto measureAll_start = std::chrono::high_resolution_clock::now();
