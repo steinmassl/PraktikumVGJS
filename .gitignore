@@ -14,6 +14,7 @@ mandelbrot*.ppm
 build/
 external/
 CMakeFiles/
+CMakeCache.txt
 Makefile
 cmake_install.cmake
 PraktikumVGJS/results/bench.cfg.*

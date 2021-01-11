@@ -150,7 +150,7 @@ namespace vgjs {
     template<typename T>
     requires std::is_constructible_v<std::function<void(void)>>
     auto get_ref(T&& t) {
-        return std::ref(std::function<void(void)>(std::move(t)));
+        return std::ref(std::reference_wrapper(std::function<void(void)>(std::move(t))));
     }
 
     /**
