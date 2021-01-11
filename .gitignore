@@ -17,7 +17,7 @@ CMakeFiles/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
-PraktikumVGJS/results/bench.cfg.*
+PraktikumVGJS/results/bench*.cfg.*
 PraktikumVGJS/results/raw*.txt
 packages/
 PraktikumVGJS.vcxproj.filters
