@@ -29,7 +29,7 @@ static constexpr uint32_t g_num_loops	= 146;		// 4us		// Threshold for C++ funct
 
 // General Settings
 static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
-static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
+static constexpr uint32_t g_num_seconds = 20;		// Number of seconds to run a fixed-time benchmark
 static constexpr uint32_t g_num_jobs	= 10000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 
@@ -52,7 +52,7 @@ Coro<> startFixedSizeBenchmarks(const int num_loops, const int num_jobs) {
 Coro<> startFixedTimeBenchmarks(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
 
 	co_await [=]() {workFunc::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);};
-	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads);
+	co_await	    workCoro::benchmarkWorkWithFixedTime(num_loops, num_jobs, num_sec, num_threads /*, std::allocator_arg, &g_global_mem */);
 
 	//
 
@@ -95,9 +95,9 @@ void startGoogleBenchmarks(const int num_loops) {
 int main() {
 
 	// Benchmark Functions
-	startGoogleBenchmarks(g_num_loops);
+	//startGoogleBenchmarks(g_num_loops);
 
-	JobSystem::instance(thread_count(g_num_threads));
+	JobSystem::instance(thread_count(g_num_threads), thread_index(0) /*, &g_global_mem */);
 	//enable_logging();
 
 	// Benchmark JobSystem Tests

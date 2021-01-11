@@ -6,19 +6,19 @@ namespace workFunc {
     void work(const int num_loops) {
         volatile unsigned long x = 0;
         for (int i = 0; i < num_loops; i++) {
-            x = x + (unsigned long)std::chrono::system_clock::now().time_since_epoch().count();
+            x = x + (unsigned long)std::chrono::high_resolution_clock::now().time_since_epoch().count();
         }
     }
 
     // Store fixed-time benchmark data
-    uint32_t									g_call_count = 0;               // Number of times measureAll has been called
+    std::atomic<uint32_t>						g_call_count = 0;               // Number of times measureAll has been called
     std::chrono::duration<double, std::micro>	g_total_timed_runtime = {};     // Sum of measureAll execution times (check overhead of surrounding code)
     std::vector<double>                         g_runtime_vec;                  // Vector of batch execution times for processing
 
     n_pmr::vector<std::function<void(void)>> g_vec;    // Reuse vector for work jobs
 
-    // Recursively batches of work until time runs out
-    void measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
+    // Recursively benchmark batches of work until time runs out
+    void measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark) {
         auto measureAll_start = std::chrono::high_resolution_clock::now();
         
         g_call_count++;
@@ -42,7 +42,7 @@ namespace workFunc {
             std::chrono::duration<double, std::micro> elapsed_measureAll_microseconds = measureAll_end - measureAll_start;
             g_total_timed_runtime += elapsed_measureAll_microseconds;
 
-            if (std::chrono::system_clock::now() < end_of_benchmark) {
+            if (std::chrono::high_resolution_clock::now() < end_of_benchmark) {
                 measureAll(num_loops, num_jobs, end_of_benchmark);
             }
         });
@@ -65,8 +65,8 @@ namespace workFunc {
 
     // Benchmark work until time runs out
     void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
-        std::chrono::time_point<std::chrono::system_clock> end_of_benchmark;
-        end_of_benchmark = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
+        std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark;
+        end_of_benchmark = std::chrono::high_resolution_clock::now() + std::chrono::seconds(num_sec);
 
         schedule([=]() { measureAll(num_loops, num_jobs, end_of_benchmark); });
 

@@ -3,31 +3,31 @@
 namespace workCoro {
 
     // Do some work not optimized by the compiler
-    Coro<> work(const int num_loops) {
+    Coro<> work(const int num_loops /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
         volatile unsigned long x = 0;
         for (int i = 0; i < num_loops; i++) {
-            x = x + (unsigned long)std::chrono::system_clock::now().time_since_epoch().count();
+            x = x + (unsigned long)std::chrono::high_resolution_clock::now().time_since_epoch().count();
         }
         co_return;
     }
 
     // Store fixed-time benchmark data
-    uint32_t									g_call_count = 0;               // Number of times measureAll has been called
+    std::atomic<uint32_t>						g_call_count = 0;               // Number of times measureAll has been called
     std::chrono::duration<double, std::micro>	g_total_timed_runtime = {};     // Sum of measureAll execution times (check overhead of surrounding code)
     std::vector<double>                         g_runtime_vec;                  // Vector of batch execution times for processing
 
     n_pmr::vector<Coro<>> g_vec;    // Reuse vector for work jobs
 
     // Benchmark batches of work until time runs out 
-    Coro<> measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::system_clock> end_of_benchmark) {
-        while (std::chrono::system_clock::now() < end_of_benchmark) {
+    Coro<> measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/ ) {
+        while (std::chrono::high_resolution_clock::now() < end_of_benchmark) {
             auto measureAll_start = std::chrono::high_resolution_clock::now();
             
             g_call_count++;
 
             g_vec.clear();
             for (int i = 0; i < num_jobs; i++) {
-                g_vec.emplace_back(work(num_loops));
+                g_vec.emplace_back(work(num_loops /*, std::allocator_arg, mr*/));
             }
 
             auto start = std::chrono::high_resolution_clock::now();
@@ -60,11 +60,11 @@ namespace workCoro {
     */
 
     // Benchmark work until time runs out (similar design to workFunc variant to mitigate overhead differences)
-    Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
-        std::chrono::time_point<std::chrono::system_clock> end;
-        end = std::chrono::system_clock::now() + std::chrono::seconds(num_sec);
+    Coro<> benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads /*, std::allocator_arg_t, n_pmr::memory_resource* mr*/) {
+        std::chrono::time_point<std::chrono::high_resolution_clock> end;
+        end = std::chrono::high_resolution_clock::now() + std::chrono::seconds(num_sec);
 
-        co_await measureAll(num_loops, num_jobs, end);
+        co_await measureAll(num_loops, num_jobs, end /*, std::allocator_arg, mr*/);
 
         double batch_median;
         if(g_runtime_vec.size() > 0) {
@@ -136,7 +136,7 @@ namespace workCoro {
         n_pmr::vector<Coro<>> vec;
         vec.reserve(num_jobs);
         for (int i = 0; i < num_jobs; i++) {
-            vec.emplace_back(work(num_loops));
+            vec.emplace_back(work(num_loops /*, std::allocator_arg, &g_global_mem*/));
         }
 
         auto start = std::chrono::high_resolution_clock::now();
