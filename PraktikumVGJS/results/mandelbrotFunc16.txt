@@ -1,0 +1,88 @@
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              23.3107 us
+    Median execution time:            23.215 us
+    Mean execution time (measureAll): 23.3107 us
+    Median batch execution time       580.375ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              584089 us
+    Median execution time:            554454 us
+    Mean execution time (measureAll): 584090 us
+    Median batch execution time       554.454ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  11
+    Mean execution time:              488749 us
+    Median execution time:            445826 us
+    Mean execution time (measureAll): 488751 us
+    Median batch execution time       445.826ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              590399 us
+    Median execution time:            553494 us
+    Mean execution time (measureAll): 590400 us
+    Median batch execution time       553.494ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              592022 us
+    Median execution time:            558663 us
+    Mean execution time (measureAll): 592023 us
+    Median batch execution time       558.663ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              597822 us
+    Median execution time:            565470 us
+    Mean execution time (measureAll): 597824 us
+    Median batch execution time       565.47ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              562610 us
+    Median execution time:            549955 us
+    Mean execution time (measureAll): 562611 us
+    Median batch execution time       549.955ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: mandelbrotFunc (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  9
+    Mean execution time:              562419 us
+    Median execution time:            545357 us
+    Mean execution time (measureAll): 562420 us
+    Median batch execution time       545.357ms
+
+    Platform:                         Win
+    CPU hardware threads:             16
