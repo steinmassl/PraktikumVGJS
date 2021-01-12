@@ -7,9 +7,9 @@ using namespace vgjs;
 
 namespace workFunc {
 
-	void work(const int);
-	void benchmarkWorkWithFixedSize(const int, const int);
-	void benchmarkWorkWithFixedTime(const int, const int, const int, const int);
+	void work(const uint32_t);
+	void benchmarkWorkWithFixedSize(const uint32_t, const uint32_t);
+	void benchmarkWorkWithFixedTime(const uint32_t, const uint32_t, const uint32_t, const uint32_t);
 }
 
 void BM_Work(benchmark::State&);

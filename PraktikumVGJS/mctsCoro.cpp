@@ -7,10 +7,10 @@ namespace mctsCoro {
 	class MonteCarloTreeSearch {
 
 		// Configure MCTS here
-		static constexpr int WIN_SCORE = 10;							// Score awarded to nodes leading to win
-		static constexpr int DRAW_SCORE = 5;							// Score awarded to nodes leading to draw
-		static constexpr int MAX_ITERATIONS = 500;						// Number of iterations of algorithm
-		static constexpr int NUM_TREES = 4;								// Number of parallel trees to create when using root parallelization
+		static constexpr uint32_t WIN_SCORE = 10;							// Score awarded to nodes leading to win
+		static constexpr uint32_t DRAW_SCORE = 5;							// Score awarded to nodes leading to draw
+		static constexpr uint32_t MAX_ITERATIONS = 500;						// Number of iterations of algorithm
+		static constexpr uint32_t NUM_TREES = 4;								// Number of parallel trees to create when using root parallelization
 		Game results[NUM_TREES];										// Results from individual trees when using parallelization
 		Game current_game;												// Save result of algorithm and access in the following round
 
@@ -33,10 +33,10 @@ namespace mctsCoro {
 		}
 
 		// Rollout Phase - simulate rest of the game from a specific node
-		int rollout(Node* node, int opponent) {
+		uint32_t rollout(Node* node, uint32_t opponent) {
 			Node* current_node = node;
 			State current_state = current_node->state;
-			int game_status = current_state.game.checkStatus();
+			int32_t game_status = current_state.game.checkStatus();
 			if (game_status == opponent) {							// Opponent won
 				current_node->parent->state.score = 0;
 				return game_status;
@@ -50,7 +50,7 @@ namespace mctsCoro {
 		}
 
 		// Backpropagation Phase - update nodes according to rollout result
-		void backPropagation(Node* node_to_explore, int rollout_result) {
+		void backPropagation(Node* node_to_explore, uint32_t rollout_result) {
 			Node* current_node = node_to_explore;
 			while (current_node != nullptr) {
 				current_node->state.num_visits++;
@@ -66,13 +66,13 @@ namespace mctsCoro {
 		MonteCarloTreeSearch(Game game) : current_game(game) {}
 
 		// MCTS - find the best move from the current state of the game
-		Coro<> findNextMove(int player, int tree_num) {
+		Coro<> findNextMove(uint32_t player, uint32_t tree_num) {
 
-			int opponent = 3 - player;		// Opponent of current player
+			uint32_t opponent = 3 - player;		// Opponent of current player
 			Tree tree = Tree(current_game);
 			Node* root = &tree.root;
 			root->state.player = opponent;	// Opponent made previous move
-			int num_iterations = 0;
+			uint32_t num_iterations = 0;
 
 			// Do this for a number of iterations / amount of time
 			while (num_iterations < MAX_ITERATIONS) {
@@ -89,7 +89,7 @@ namespace mctsCoro {
 					node_to_explore = promising_node->getRandomChildNode();
 				}
 
-				int rollout_result = rollout(node_to_explore, opponent);			// Rollout					
+				uint32_t rollout_result = rollout(node_to_explore, opponent);			// Rollout					
 
 				backPropagation(node_to_explore, rollout_result);					// Backpropagation
 
@@ -102,10 +102,10 @@ namespace mctsCoro {
 		}
 
 		// Find best move by creating multiple trees in parallel and merging all results
-		Coro<> findNextMoveWithRootParallelization(int player) {
+		Coro<> findNextMoveWithRootParallelization(uint32_t player) {
 			n_pmr::vector<Coro<>> trees;
 			trees.reserve(NUM_TREES);
-			for (int i = 0; i < NUM_TREES; i++) {
+			for (uint32_t i = 0; i < NUM_TREES; i++) {
 				trees.emplace_back(findNextMove(player, i));
 			}
 			co_await trees;
@@ -116,11 +116,11 @@ namespace mctsCoro {
 		// Use simplified similarity vote to choose next move after parallelized search
 		Coro<> similarityVote() {
 			//std::cout << "Similarity: ";
-			std::unordered_map<Game, int, Game::GameHasher> hash;			// Hash into map to efficiently find most frequent element
-			for (int i = 0; i < NUM_TREES; i++) {
+			std::unordered_map<Game, uint32_t, Game::GameHasher> hash;			// Hash into map to efficiently find most frequent element
+			for (uint32_t i = 0; i < NUM_TREES; i++) {
 				hash[results[i]]++;											// Add votes from trees to their respective chosen moves 
 			}
-			int max_count = 0;
+			uint32_t max_count = 0;
 			Game res;
 			for (auto& ele : hash) {
 				if (ele.second > max_count) {
@@ -147,10 +147,10 @@ namespace mctsCoro {
 
 	Game tic_tac_toe_game = Game();
 	MonteCarloTreeSearch mcts(tic_tac_toe_game);
-	int player = Game::P1;
-	int total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
+	uint32_t player = Game::P1;
+	uint32_t total_moves = Game::DEFAULT_BOARD_SIZE * Game::DEFAULT_BOARD_SIZE;
 
-	Coro<> loopForEachRound(int n) {
+	Coro<> loopForEachRound(uint32_t n) {
 		//std::cout << "Player " << player << std::endl;
 		co_await mcts.findNextMoveWithRootParallelization(player);			// Find move using MCTS with root parallelization
 

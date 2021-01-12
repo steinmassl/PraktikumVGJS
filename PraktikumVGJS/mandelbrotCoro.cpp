@@ -4,10 +4,10 @@
 namespace mandelbrotCoro {
 
 	// Dimensions
-	constexpr int WIDTH = 1000;
-	constexpr int HEIGHT = 1000;
+	constexpr uint32_t WIDTH = 1000;
+	constexpr uint32_t HEIGHT = 1000;
 
-	const int MAX_ITERATIONS = 50;				// Maximum number of iterations per pixel
+	const uint32_t MAX_ITERATIONS = 50;				// Maximum number of iterations per pixel
 
 	short pixels[WIDTH * HEIGHT];				// Array for pixel values while working
 
@@ -17,8 +17,8 @@ namespace mandelbrotCoro {
 		std::ofstream mandelbrotImage("mandelbrotCoro.ppm");
 		if (mandelbrotImage.is_open()) {
 			mandelbrotImage << "P3\n" << WIDTH << " " << HEIGHT << " 255\n";		// PPM Header data
-			for (int i = 0; i < HEIGHT; i++) {
-				for (int j = 0; j < WIDTH; j++) {
+			for (uint32_t i = 0; i < HEIGHT; i++) {
+				for (uint32_t j = 0; j < WIDTH; j++) {
 					short value = pixels[i * WIDTH + j];
 					mandelbrotImage << value << " " << value << " " << value << "\n";		// Write values from pixel storage into file
 				}
@@ -31,11 +31,11 @@ namespace mandelbrotCoro {
 	}
 
 	// Calculate the value of each pixel up to a certain number of iterations using coordinates as complex number
-	Coro<> calculatePixel( int x, int y) {
+	Coro<> calculatePixel( uint32_t x, uint32_t y) {
 		std::complex<double> point(x / (WIDTH * 0.5) - 1.5, y / (HEIGHT * 0.5) - 1.0);			// Project onto image - The complex number to add in the iteration
 
 		std::complex<double> z(0, 0);								// Mandelbrot starting value
-		int iterations = 0;											// Current number of iterations on this point
+		uint32_t iterations = 0;											// Current number of iterations on this point
 		while (std::abs(z) < 2 && iterations <= MAX_ITERATIONS) {	// Abort after certain iterations or when point is unstable
 			z = z * z + point;
 			iterations++;
@@ -52,10 +52,10 @@ namespace mandelbrotCoro {
 
 	n_pmr::vector<Coro<>> g_vector;							// Use same vector for every recursive call (save ram because coros don't finish until children finished)
 
-	Coro<>mandelbrotRecursive( int y) {
+	Coro<>mandelbrotRecursive( uint32_t y) {
 		g_vector.clear();									// Clear vector to reuse for this round
 
-		for (int i = 0; i < WIDTH; i++) {
+		for (uint32_t i = 0; i < WIDTH; i++) {
 			g_vector.emplace_back(calculatePixel( i, y));			// Parallelise per pixel - what about iterations per pixel?
 		}
 		co_await g_vector;
@@ -65,8 +65,8 @@ namespace mandelbrotCoro {
 
 	Coro<>mandelbrotLoop() {
 		n_pmr::vector<Coro<>> vec;											// Create std::pmr::vector<Coro<>> for multiple children
-		for (int i = 0; i < HEIGHT; i++) {
-			for (int j = 0; j < WIDTH; j++) {
+		for (uint32_t i = 0; i < HEIGHT; i++) {
+			for (uint32_t j = 0; j < WIDTH; j++) {
 				vec.emplace_back(calculatePixel(j, i));						// Parallelise per pixel - what about iterations per pixel?
 			}
 			co_await vec;													// Split workload into chunks to avoid huge amounts of ram being allocated(20mb vs 3gb at 2000x2000)

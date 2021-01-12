@@ -3,10 +3,10 @@
 namespace workFunc {
 
     // Do some work not optimized by the compiler - use this to test speedup
-    void work(const int num_loops) {
-        volatile unsigned long x = 0;
-        for (int i = 0; i < num_loops; i++) {
-            x = x + (unsigned long)std::chrono::high_resolution_clock::now().time_since_epoch().count();
+    void work(const uint32_t num_loops) {
+        volatile uint64_t x = 0;
+        for (uint32_t i = 0; i < num_loops; i++) {
+            x = x + (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
         }
     }
 
@@ -18,13 +18,13 @@ namespace workFunc {
     n_pmr::vector<std::function<void(void)>> g_vec;    // Reuse vector for work jobs
 
     // Recursively benchmark batches of work until time runs out
-    void measureAll(const int num_loops, const int num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark) {
+    void measureAll(const uint32_t num_loops, const uint32_t num_jobs, const std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark) {
         auto measureAll_start = std::chrono::high_resolution_clock::now();
         
         g_call_count++;
         
         g_vec.clear();
-        for (int i = 0; i < num_jobs; i++) {
+        for (uint32_t i = 0; i < num_jobs; i++) {
             g_vec.emplace_back([=]() {work(num_loops); });
         }
 
@@ -64,14 +64,14 @@ namespace workFunc {
     */
 
     // Benchmark work until time runs out
-    void benchmarkWorkWithFixedTime(const int num_loops, const int num_jobs, const int num_sec, const int num_threads) {
+    void benchmarkWorkWithFixedTime(const uint32_t num_loops, const uint32_t num_jobs, const uint32_t num_sec, const uint32_t num_threads) {
         std::chrono::time_point<std::chrono::high_resolution_clock> end_of_benchmark;
         end_of_benchmark = std::chrono::high_resolution_clock::now() + std::chrono::seconds(num_sec);
 
         schedule([=]() { measureAll(num_loops, num_jobs, end_of_benchmark); });
 
         continuation([=]() {
-            double batch_median;
+            double batch_median = 0;
             if(g_runtime_vec.size() > 0) {
                 std::sort(g_runtime_vec.begin(), g_runtime_vec.end()); // To find median
                 size_t size = g_runtime_vec.size();
@@ -139,9 +139,9 @@ namespace workFunc {
     }
 
     // Benchmark a certain number of work calls
-    void benchmarkWorkWithFixedSize(const int num_loops, const int num_jobs) {
+    void benchmarkWorkWithFixedSize(const uint32_t num_loops, const uint32_t num_jobs) {
         n_pmr::vector<std::function<void(void)>> vec;
-        for (int i = 0; i < num_jobs; i++) {
+        for (uint32_t i = 0; i < num_jobs; i++) {
             vec.emplace_back([=]() {work(num_loops); });
         }
         auto start = std::chrono::high_resolution_clock::now();
@@ -162,7 +162,7 @@ namespace workFunc {
 void BM_Work(benchmark::State& state) {
     for (auto _ : state) {
         // This code gets timed
-        workFunc::work((int) state.range(0));
+        workFunc::work((uint32_t) state.range(0));
     }
 }
 

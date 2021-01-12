@@ -222,3 +222,45 @@ Test: workCoro (Fixed Time)
     Jobs per batch:                   10000
     Platform:                         Linux
     CPU hardware threads:             16
+
+Test: workCoro (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  2741
+    Mean execution time (work):       0.350523 us
+    Median execution time (work):     0.33577 us
+    Mean execution time (measureAll): 0.729783 us
+    Median batch execution time       3.3577ms
+    Jobs per batch:                   10000
+
+    Loops in work():                  146
+    Jobs per batch:                   10000
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: workCoro (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  1040
+    Mean execution time (work):       0.348206 us
+    Median execution time (work):     0.341104 us
+    Mean execution time (measureAll): 0.769622 us
+    Median batch execution time       8.5276ms
+    Jobs per batch:                   25000
+
+    Loops in work():                  146
+    Jobs per batch:                   25000
+    Platform:                         Win
+    CPU hardware threads:             16
+
+Test: workCoro (Fixed Time)
+    Threads used in VJGS:             16
+    Number of calls:                  946
+    Mean execution time (work):       0.378922 us
+    Median execution time (work):     0.341824 us
+    Mean execution time (measureAll): 0.845979 us
+    Median batch execution time       8.5456ms
+    Jobs per batch:                   25000
+
+    Loops in work():                  146
+    Jobs per batch:                   25000
+    Platform:                         Win
+    CPU hardware threads:             16

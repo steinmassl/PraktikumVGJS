@@ -7,11 +7,11 @@
 // Tic Tac Toe game to test MCTS
 class Game {
 public:
-	static constexpr int DEFAULT_BOARD_SIZE = 5;			// Board Dimensions
-	static constexpr int IN_PROGRESS = -1;
-	static constexpr int DRAW = 0;
-	static constexpr int P1 = 1;
-	static constexpr int P2 = 2;
+	static constexpr uint32_t DEFAULT_BOARD_SIZE = 5;			// Board Dimensions
+	static constexpr int32_t IN_PROGRESS = -1;
+	static constexpr uint32_t DRAW = 0;
+	static constexpr uint32_t P1 = 1;
+	static constexpr uint32_t P2 = 2;
 
 	short game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};			// Initialize the game board with zeroes
 	short num_empty_positions = DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE;
@@ -32,7 +32,7 @@ public:
 	}
 
 	// Put player number into selected field marking it for this player
-	void performMove(int player, Pos pos) {
+	void performMove(uint32_t player, Pos pos) {
 		game_values[pos.first][pos.second] = player;
 		num_empty_positions--;
 	}
@@ -41,8 +41,8 @@ public:
 	std::vector<Pos> getEmptyPositions() {
 		std::vector<Pos> empty_positions;
 		empty_positions.reserve(num_empty_positions);
-		for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-			for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+		for (uint32_t i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+			for (uint32_t j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 				if (game_values[i][j] == 0)
 					empty_positions.emplace_back(Pos(i, j));
 			}
@@ -51,10 +51,10 @@ public:
 	}
 
 	// Check if there is an alignment that would win the game
-	int checkForWin(int* row) {
+	uint32_t checkForWin(uint32_t* row) {
 		bool aligned = true;
-		int current = row[0];
-		for (int i = 1; i < DEFAULT_BOARD_SIZE; i++) {
+		uint32_t current = row[0];
+		for (uint32_t i = 1; i < DEFAULT_BOARD_SIZE; i++) {
 			if (current != row[i] || current == 0) {
 				aligned = false;
 				break;
@@ -68,26 +68,26 @@ public:
 	}
 
 	// Check whether a player has won the game or a draw occured
-	int checkStatus() {
-		int max_index = DEFAULT_BOARD_SIZE - 1;
-		int diag_1[DEFAULT_BOARD_SIZE];
-		int diag_2[DEFAULT_BOARD_SIZE];
+	uint32_t checkStatus() {
+		uint32_t max_index = DEFAULT_BOARD_SIZE - 1;
+		uint32_t diag_1[DEFAULT_BOARD_SIZE];
+		uint32_t diag_2[DEFAULT_BOARD_SIZE];
 
-		for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-			int line[DEFAULT_BOARD_SIZE];
-			for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+		for (uint32_t i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+			uint32_t line[DEFAULT_BOARD_SIZE];
+			for (uint32_t j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 				line[j] = game_values[i][j];
 			}
 
-			int row_win = checkForWin(line);						// Check rows
+			uint32_t row_win = checkForWin(line);						// Check rows
 			if (row_win != 0)
 				return row_win;
 
-			for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+			for (uint32_t j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 				line[j] = game_values[j][i];
 			}
 
-			int col_win = checkForWin(line);						// Check columns
+			uint32_t col_win = checkForWin(line);						// Check columns
 			if (col_win != 0)
 				return col_win;
 
@@ -95,11 +95,11 @@ public:
 			diag_2[i] = game_values[max_index - i][i];
 		}
 
-		int diag_1_win = checkForWin(diag_1);						// Check both diagonals
+		uint32_t diag_1_win = checkForWin(diag_1);						// Check both diagonals
 		if (diag_1_win != 0)
 			return diag_1_win;
 
-		int diag_2_win = checkForWin(diag_2);
+		uint32_t diag_2_win = checkForWin(diag_2);
 		if (diag_2_win != 0)
 			return diag_2_win;
 
@@ -111,8 +111,8 @@ public:
 
 	// Print the current status of the board
 	void print() {
-		for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-			for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+		for (uint32_t i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+			for (uint32_t j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 				std::cout << game_values[i][j] << " ";
 			}
 			std::cout << std::endl;
@@ -126,8 +126,8 @@ public:
 			using std::hash;
 
 			size_t res = 0;
-			for (int i = 0; i < DEFAULT_BOARD_SIZE; i++) {
-				for (int j = 0; j < DEFAULT_BOARD_SIZE; j++) {
+			for (uint32_t i = 0; i < DEFAULT_BOARD_SIZE; i++) {
+				for (uint32_t j = 0; j < DEFAULT_BOARD_SIZE; j++) {
 					res = res * 314159 + game.game_values[i][j];
 				}
 			}
