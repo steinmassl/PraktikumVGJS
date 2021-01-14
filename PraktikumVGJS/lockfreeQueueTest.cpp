@@ -1,4 +1,4 @@
-#include "lockfreeQueueTest.h"
+#include "tests.h"
 
 namespace lock_free {
 
@@ -113,28 +113,29 @@ namespace lock_free {
             return true;
         }
     };
-    
     JobQueue<Job> queue;
-	void test() {
+    void test_push() {
+        for (int j = 0; j < 1; j++) {
+            Job* job = new Job(n_pmr::new_delete_resource());
+            queue.push(job);
+        }
+    }
+    void test_pop() {
+        for (int j = 0; j < 2; j++) {
+            Job* job = nullptr;
+            bool pop = queue.pop(job);
+            std::cout << "Pop: " << pop << std::endl;
+        }
+    }
+
+	Coro<> test() {
 		for (int i = 0; i < 16; i++) {
-			schedule([]() {
-				for (int j = 0; j < 1; j++) {
-                    Job* job = new Job(n_pmr::new_delete_resource());
-					queue.push(job);
-				}
-			});
+            co_await[]() { test_push(); };
 		}
-		//continuation([]() {
-			for (int i = 0; i < 16; i++) {
-				schedule([]() {
-					for (int j = 0; j < 2; j++) {
-                        Job* job = nullptr;
-						bool pop = queue.pop(job);
-						std::cout << "Pop: " << pop << std::endl;
-					}
-				});
-			}
-			continuation([]() {vgjs::terminate(); });
-		//});
+
+		for (int i = 0; i < 16; i++) {
+            co_await[]() { test_pop(); };
+		}
+        co_return;
 	}
 }

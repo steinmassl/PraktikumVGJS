@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="PraktikumVGJS\lockfreeQueueTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\mandelbrotCoro.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\mandelbrotFunc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\mctsCoro.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\mctsFunc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\work.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PraktikumVGJS\mctsGame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\mctsStructs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VECoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VECoroLockfree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VEGameJobSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VEGameJobSystemLockfree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\vgjs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{31105389-a2a1-489b-a230-21cfb131defd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{b682ebab-7f5f-4088-b888-1266d19b6e0b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

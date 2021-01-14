@@ -1,4 +1,4 @@
-#include "mandelbrotFunc.h"
+#include "tests.h"
 #include <complex>
 
 namespace mandelbrotFunc {

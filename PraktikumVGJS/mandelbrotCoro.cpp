@@ -1,4 +1,4 @@
-#include "mandelbrotCoro.h"
+#include "tests.h"
 #include <complex>
 
 namespace mandelbrotCoro {

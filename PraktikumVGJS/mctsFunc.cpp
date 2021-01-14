@@ -1,4 +1,4 @@
-#include "mctsFunc.h"
+#include "tests.h"
 #include "mctsStructs.h"
 
 namespace mctsFunc {
