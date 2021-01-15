@@ -66,13 +66,13 @@ namespace vgjs {
     /**
     * \brief Schedule a Coro into the job system.
     * Basic function for scheduling a coroutine Coro into the job system.
-    * \param[in] coro A coroutine Coro, whose promise is a job that is scheduled into the job system
+    * \param[in] coro A ref to coroutine Coro, whose promise is a job that is scheduled into the job system
     * \param[in] parent The parent of this Job.
     * \param[in] children Number used to increase the number of children of the parent.
     */
     template<typename T>
     requires CORO<T>   
-    void schedule( T& coro, tag tg = tag{}, Job_base* parent = current_job(), int32_t children = 1) noexcept {
+    void schedule( T&& coro, tag tg = tag{}, Job_base* parent = current_job(), int32_t children = 1) noexcept {
         auto& js = JobSystem::instance();
 
         auto promise = coro.promise();
@@ -87,21 +87,20 @@ namespace vgjs {
             promise->set_self_destruct(true);
             promise->m_parent = nullptr;
         }
-        js.schedule( coro.promise(), tg );      //schedule the promise as job
+        js.schedule( promise, tg );      //schedule the promise as job
     };
 
-    /**
-    * \brief Schedule a Coro into the job system.
-    * Basic function for scheduling a coroutine Coro into the job system.
-    * \param[in] coro A coroutine Coro, whose promise is a job that is scheduled into the job system.
-    * \param[in] parent The parent of this Job.
-    * \param[in] children Number used to increase the number of children of the parent.
-    */
+
     template<typename T>
     requires CORO<T>
-    void schedule( T&& coro, tag tg = tag{}, Job_base* parent = current_job(), int32_t children = 1) noexcept {
-        schedule(coro, tg, parent, children);
+    void continuation(T&& coro) noexcept {
+        Job_base* current = current_job();
+        if (current == nullptr || !current->is_function()) {
+            return;
+        }
+        ((Job*)current)->m_continuation = coro.promise();
     };
+
 
     //---------------------------------------------------------------------------------------------------
     //Deallocators
@@ -148,9 +147,9 @@ namespace vgjs {
     *
     */
     template<typename T>
-    requires std::is_constructible_v<std::function<void(void)>>
+    requires is_constructible_v<std::function<void(void),T>>
     auto get_ref(T&& t) {
-        return std::ref(std::reference_wrapper(std::function<void(void)>(std::move(t))));
+        return std::ref(std::function<void(void)>(std::move(t)));
     }
 
     /**
@@ -327,7 +326,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        auto get_val(T& t) {
+        decltype(auto) get_val(T& t) {
             return std::make_tuple(); //ignored by std::tuple_cat
         }
 
@@ -339,7 +338,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires (!std::is_void_v<T>)
+        requires !std::is_void_v<T>
         decltype(auto) get_val(Coro<T>& t) {
             return std::make_tuple(t.get());
         }
@@ -352,7 +351,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires (!std::is_void_v<T>)
+        requires !std::is_void_v<T>
         decltype(auto) get_val( std::pmr::vector<Coro<T>>& vec) {
             n_pmr::vector<T> ret;
             ret.reserve(vec.size());
@@ -365,11 +364,11 @@ namespace vgjs {
         * \returns the results from the co_await
         *
         */
-        decltype(auto) await_resume() {
-            decltype(auto) f = [&, this]<typename... Us>(Us&... args) {
+        auto await_resume() {
+            auto f = [&, this]<typename... Us>(Us&... args) {
                 return std::tuple_cat(get_val(args)...);
             };
-            decltype(auto) ret = std::apply(f, m_tuple);
+            auto ret = std::apply(f, m_tuple);
             if constexpr (std::tuple_size_v < decltype(ret) > == 0) {
                 return;
             }
@@ -594,7 +593,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires (!std::is_integral_v<U>)
+        requires !std::is_integral_v<U>
         awaitable_tuple<T, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
 
         template<typename... Ts>
@@ -758,8 +757,8 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<T>&& operator() (thread_index thread_index, thread_type type, thread_id id) {
-            m_promise->m_thread_index = thread_index;
+        Coro<T>&& operator() (thread_index index = thread_index{}, thread_type type = thread_type{}, thread_id id = thread_id{}) {
+            m_promise->m_thread_index = index;
             m_promise->m_type = type;
             m_promise->m_id = id;
             return std::move(*this);
@@ -828,7 +827,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires (!std::is_integral_v<U>)
+        requires !std::is_integral_v<U>
         awaitable_tuple<void, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
 
         template<typename... Ts>
@@ -923,14 +922,13 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<void>&& operator() (thread_index index, thread_type type, thread_id id) {
+        Coro<void>&& operator() (thread_index index = thread_index{}, thread_type type = thread_type{}, thread_id id = thread_id{}) {
             m_promise->m_thread_index = index;
             m_promise->m_type = type;
             m_promise->m_id = id;
             return std::move(*this);
         }
     };
-
 
 
     //---------------------------------------------------------------------------------------------------
@@ -1074,7 +1072,9 @@ namespace vgjs {
     */
     template<typename Class, typename... Args>
     inline void* Coro_promise_base::operator new(std::size_t sz, Class, Args&&... args) noexcept {
-        return operator new(sz, std::allocator_arg, JobSystem::instance().memory_resource(), args...);
+        return operator new(sz, std::allocator_arg, 
+            JobSystem::is_instance_created() ? JobSystem::instance().memory_resource() : std::pmr::new_delete_resource(), 
+            args...);
     }
 
     /**
@@ -1085,7 +1085,9 @@ namespace vgjs {
     */
     template<typename... Args>
     inline void* Coro_promise_base::operator new(std::size_t sz, Args&&... args) noexcept {
-        return operator new(sz, std::allocator_arg, JobSystem::instance().memory_resource(), args...);
+        return operator new(sz, std::allocator_arg, 
+            JobSystem::is_instance_created() ? JobSystem::instance().memory_resource() : std::pmr::new_delete_resource(),
+            args...);
     }
 
     /**

@@ -2,34 +2,26 @@
 #include <iomanip>
 
 namespace work {
-
+    using namespace std::chrono;
     // Do some work not optimized by the compiler - use this to test speedup
-    void workFunc(const double us) {
-        volatile uint64_t x = 0;
+    void workFunc(double us) {
+        volatile unsigned int counter = 1;
+        volatile double root = 0.0f;
 
-        auto start = std::chrono::high_resolution_clock::now();
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+        auto start = high_resolution_clock::now();
+        auto duration = duration_cast<microseconds>(high_resolution_clock::now() - start);
 
         while (duration.count() < us) {
-            x = x + (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
-            stop = std::chrono::high_resolution_clock::now();
-            duration = duration_cast<std::chrono::microseconds>(stop - start);
+            for (int i = 0; i < 10; ++i) {
+                counter += counter;
+                root = sqrt((float)counter);
+            }
+            duration = duration_cast<microseconds>(high_resolution_clock::now() - start);
         }
     }
 
     Coro<> workCoro(const double us) {
-        volatile uint64_t x = 0;
-
-        auto start = std::chrono::high_resolution_clock::now();
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-
-        while (duration.count() < us) {
-            x = x + (uint64_t)std::chrono::high_resolution_clock::now().time_since_epoch().count();
-            stop = std::chrono::high_resolution_clock::now();
-            duration = duration_cast<std::chrono::microseconds>(stop - start);
-        }
+        workFunc(us);
         co_return;
     }
 
@@ -40,7 +32,7 @@ namespace work {
     };
 
     // Recursively benchmark batches of work until time runs out
-    Coro<std::vector<double>*> measure(const bool use_coro, measure_type measure_type, const double us, const uint32_t num_jobs, const uint32_t num_sec) {
+    Coro<std::vector<double>*> measure(const bool use_coro, measure_type measure_type, const double us, const int32_t num_jobs, const uint32_t num_sec) {
 
         std::vector<double>* durations = new std::vector<double>();
 
@@ -52,13 +44,14 @@ namespace work {
             auto start = std::chrono::high_resolution_clock::now();
             auto end = std::chrono::high_resolution_clock::now();
 
-            n_pmr::vector<Function> vec_func{};
-            n_pmr::vector<Coro<>> vec_coro{};
+            n_pmr::vector<std::function<void(void)>> vec_func{n_pmr::new_delete_resource()};
+            n_pmr::vector<Function> vec_Func{ n_pmr::new_delete_resource() };
+            n_pmr::vector<Coro<>> vec_coro{n_pmr::new_delete_resource()};
 
             switch (measure_type) {
             case FUNC_ONLY:
                 start = std::chrono::high_resolution_clock::now();
-                for (uint32_t i = 0; i < num_jobs; i++) {
+                for (int32_t i = 0; i < num_jobs; i++) {
                     workFunc(us);
                 }
                 end = std::chrono::high_resolution_clock::now();
@@ -66,33 +59,36 @@ namespace work {
             
 
             case SINGLE_THREAD: 
-                for (uint32_t i = 0; i < num_jobs; i++) {
-                    vec_func.emplace_back(Function{ [=]() {workFunc(us); }, thread_index{0} });
+                for (int32_t i = 0; i < num_jobs; i++) {
+                    vec_Func.emplace_back(Function{ [=]() {workFunc(us); }, thread_index{0} });
                 }
                 start = std::chrono::high_resolution_clock::now();
-                co_await vec_func;
+                co_await vec_Func;
                 end = std::chrono::high_resolution_clock::now();
                 break;
             
 
             case MULTI_THREAD: 
-                for (uint32_t i = 0; i < num_jobs; i++) {
-                    if (use_coro)
-                        vec_coro.emplace_back(workCoro(us));
-                    else 
-                        vec_func.emplace_back(Function{ [=]() {workFunc(us); } });
+                if (use_coro) for (int32_t i = 0; i < num_jobs; i++) vec_coro.emplace_back(workCoro(us));
+                else vec_func.resize(num_jobs, std::function<void(void)> {[&]() {workFunc(us); } });
+                if (use_coro) {
+                    start = std::chrono::high_resolution_clock::now();
+                    co_await vec_coro;
+                    end = std::chrono::high_resolution_clock::now();
                 }
-                start = std::chrono::high_resolution_clock::now();
-                use_coro ? co_await vec_coro : co_await vec_func;
-                end = std::chrono::high_resolution_clock::now();
+                else {
+                    start = std::chrono::high_resolution_clock::now();
+                    co_await vec_func;
+                    end = std::chrono::high_resolution_clock::now();
+                }
                 break;
             
             default:
                 std::cout << "Default case" << std::endl;
             }
 
-            std::chrono::duration<double, std::micro> elapsed_work_microseconds = end - start;
-            durations->push_back(elapsed_work_microseconds.count());
+            auto elapsed_work_microseconds = duration_cast<std::chrono::microseconds>(end - start);
+            durations->push_back((double) elapsed_work_microseconds.count());
         }
         co_return durations;
     }
@@ -120,14 +116,35 @@ namespace work {
             auto res_single_thread = co_await measure(false, measure_type::SINGLE_THREAD, num_microseconds, num_jobs, num_sec);
             auto res_all_threads = co_await measure(false, measure_type::MULTI_THREAD, num_microseconds, num_jobs, num_sec);
             auto res_all_threads_coro = co_await measure(true, measure_type::MULTI_THREAD, num_microseconds, num_jobs, num_sec);
+            
+            double speedup_func_only = 0;
+            double efficiency_func_only = 0;
+            double speedup_func_only_coro = 0;
+            double efficiency_func_only_coro = 0;
+            double speedup_single_thread = 0;
+            double efficiency_single_thread = 0;
 
-            double speedup_func_only = calculateMedianExecutionTime(*res_func_only) / calculateMedianExecutionTime(*res_all_threads);
-            double efficiency_func_only = speedup_func_only / num_threads;
-            double speedup_func_only_coro = calculateMedianExecutionTime(*res_func_only) / calculateMedianExecutionTime(*res_all_threads_coro);
-            double efficiency_func_only_coro = speedup_func_only_coro / num_threads;
+            bool use_median = true;
 
-            double speedup_single_thread = calculateMedianExecutionTime(*res_single_thread) / calculateMedianExecutionTime(*res_all_threads);
-            double efficiency_single_thread = speedup_single_thread / num_threads;
+            if (use_median) {
+                speedup_func_only = calculateMedianExecutionTime(*res_func_only) / calculateMedianExecutionTime(*res_all_threads);
+                efficiency_func_only = speedup_func_only / num_threads;
+                speedup_func_only_coro = calculateMedianExecutionTime(*res_func_only) / calculateMedianExecutionTime(*res_all_threads_coro);
+                efficiency_func_only_coro = speedup_func_only_coro / num_threads;
+                speedup_single_thread = calculateMedianExecutionTime(*res_single_thread) / calculateMedianExecutionTime(*res_all_threads);
+                efficiency_single_thread = speedup_single_thread / num_threads;
+            }
+            else {
+                speedup_func_only = calculateMeanExecutionTime(*res_func_only) / calculateMeanExecutionTime(*res_all_threads);
+                efficiency_func_only = speedup_func_only / num_threads;
+                speedup_func_only_coro = calculateMeanExecutionTime(*res_func_only) / calculateMeanExecutionTime(*res_all_threads_coro);
+                efficiency_func_only_coro = speedup_func_only_coro / num_threads;
+                speedup_single_thread = calculateMeanExecutionTime(*res_single_thread) / calculateMeanExecutionTime(*res_all_threads);
+                efficiency_single_thread = speedup_single_thread / num_threads;
+            }
+          
+
+
 
 
             std::cout << "Duration: " << std::setw(2) << num_microseconds << " us" << std::endl
@@ -140,6 +157,11 @@ namespace work {
                 << std::setw(25) << "wrt Functions CoroSpeedup: " << std::setw(7) << speedup_func_only_coro
                 << std::setw(15) << " CoroEfficiency: " << efficiency_func_only_coro << std::endl
                 << std::endl;
+
+            delete res_func_only;
+            delete res_single_thread;
+            delete res_all_threads;
+            delete res_all_threads_coro;
         }
         co_return;
     }

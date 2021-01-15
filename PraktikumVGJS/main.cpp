@@ -5,8 +5,8 @@
 
 // General Settings
 static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
-static constexpr uint32_t g_num_seconds = 1;		// Number of seconds to run a fixed-time benchmark
-static constexpr uint32_t g_num_jobs	= 10000;	// Number of work jobs to create when doing fixed-size benchmarks
+static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
+static constexpr uint32_t g_num_jobs	= 50000;	// Number of work jobs to create when doing fixed-size benchmarks
 
 // Start selected fixed-size Benchmarks
 Coro<> startFixedSizeBenchmarks() {
@@ -32,15 +32,15 @@ Coro<> startFixedTimeBenchmarks(const uint32_t num_jobs, const uint32_t num_sec,
 
 Coro<> startJobSystemBenchmarks(const uint32_t num_jobs, const uint32_t num_seconds, const uint32_t num_threads) {
 
-	co_await startFixedSizeBenchmarks();
 	co_await startFixedTimeBenchmarks(num_jobs, num_seconds, num_threads);
+	//co_await startFixedSizeBenchmarks();
 
 	std::cout << std::endl
 		<< "Threads used in VGJS: " << num_threads << std::endl;
 	std::cout << std::endl;
 
 	// Test Lock-free queue
-	co_await lock_free::test();
+	//co_await lock_free::test();
 
 	vgjs::terminate();
 	co_return;
@@ -51,16 +51,17 @@ int main() {
 	// Benchmark Functions
 	//startGoogleBenchmarks();
 
-	JobSystem::instance(thread_count(g_num_threads), thread_index(0) /*, &g_global_mem */);
+	JobSystem::instance(thread_count(g_num_threads));
 	//enable_logging();
 
 	// Benchmark JobSystem Tests
 	schedule(startJobSystemBenchmarks(g_num_jobs, g_num_seconds, g_num_threads));
 
 	wait_for_termination();
+	std::cout << "Exit" << std::endl;
 	char in;
 	std::cin >> in;
-	std::cout << "Exit" << std::endl;
+
 }
 
 
