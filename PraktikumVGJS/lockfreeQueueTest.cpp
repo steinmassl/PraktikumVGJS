@@ -2,6 +2,7 @@
 
 namespace lock_free {
 
+    // Tagged pointer
 	template<typename JOB>
     struct pointer_t {
         node_t<JOB>* ptr = nullptr;
@@ -36,25 +37,79 @@ namespace lock_free {
         std::atomic<pointer_t<JOB>> 	m_tail;	        //points to last entry
         std::atomic<int32_t>	        m_size = 0;		//number of entries in the queue
 
-    public:
+        // When number of threads is not known beforehand (most of the time), algorithm extensions are necessary
 
+        static constexpr int K = 1;     // Hazard Pointer per thread
+        static constexpr int N = 16;    // Number of threads being used in VGJS
+        static constexpr int H = K * N; // Total number of hazard pointer
+        static constexpr int R = 2 * N; // Threshold for starting scan (R = H + Omega(H))
+
+        struct hp_rec_type {        // Hazard Pointer record
+            node_t<JOB>* HP[K];
+            hp_rec_type* next;
+        };
+
+        hp_rec_type* head_hp_rec;   // Header of the hp_rec list
+
+        // Per thread private variables
+        static thread_local node_t<JOB>* rlist[R];  // initially empty
+        static thread_local unsigned int rcount;    // initially 0
+
+        void scan(hp_rec_type* head) {
+            unsigned int i;
+            unsigned int pcount = 0;
+            unsigned int new_rcount = 0;
+            node_t<JOB>* plist[N];
+            node_t<JOB>* next_rlist[N];
+
+            // Stage 1: Scan HP list and insert non-null values in plist
+            hp_rec_type* hp_rec = head;
+            while (hp_rec != nullptr) {
+                for (i = 0; i < K - 1; ++i) {
+                    if (hp_rec->HP[i] != nullptr)
+                        plist[pcount++] = hp_rec->HP[i];
+                }
+                hp_rec = hp_rec->next;
+            }
+            // sort plist to prepare for binary search
+            //sort(plist);                                  // need array sort
+
+            // Stage 2: compare plist against rlist
+            for (i = 0; i < R; ++i) {
+                //if (binary_search(rlist[i], plist))       // need array binary search
+                    next_rlist[new_rcount++] = rlist[i];
+                //else
+                    delete rlist[i];
+            }
+            for (i = 0; i < new_rcount; ++i) 
+                rlist[i] = next_rlist[i];
+            rcount = new_rcount;            
+        }
+
+        void retireNode(node_t<JOB>* node) {
+            rlist[rcount++] = node;
+            if (rcount >= 16)
+                scan(head_hp_rec);
+        }
+    public:
         JobQueue() {
+            // Head and Tail point to dummy node
             node_t<JOB>* start = new node_t<JOB>();
             m_head.store(start, std::memory_order_release);
-            m_tail.store(start, std::memory_order_release);
+            m_tail.store(start, std::memory_order_release);     
         }
 
         JobQueue(const JobQueue<JOB>& queue) noexcept : JobQueue() {}
 
         ~JobQueue() {
-            delete m_head.load().ptr;
+            delete m_head.load().ptr;   // Delete last dummy node
         }
 
 
 
         /**
         * \brief Pushes a job onto the queue tail.
-        * \param[in] job The job to be pushed into the queue.
+        * \param[in] job_to_push The job to be pushed into the queue.
         */
         void push(JOB* job_to_push) {
             node_t<JOB>* new_node = new node_t<JOB>();
@@ -81,14 +136,15 @@ namespace lock_free {
 
         /**
         * \brief Pops a job from the head of the queue.
-        * \returns a job or nullptr.
+        * \param[in] popped_job The object that will be assigned with the popped job
+        * \returns true when pop was successful
         */
         bool pop(JOB*& popped_job) {
             pointer_t<JOB> head;
             while (true) {
                 head = m_head.load(std::memory_order_acquire);
                 pointer_t<JOB> tail = m_tail.load(std::memory_order_acquire);
-                pointer_t<JOB> next = head.ptr->next.load(std::memory_order_acquire);
+                pointer_t<JOB> next = head.ptr->next.load(std::memory_order_acquire);   // use-after-free problem when accessing head.ptr->next
 
                 if (head == m_head.load()) {
                     if (head.ptr == tail.ptr) {
@@ -105,7 +161,7 @@ namespace lock_free {
                     }
                 }
             }
-            // free dummy head node
+            // free dummy head node (might still be accessed)
             delete head.ptr;
             //std::cout << m_size << std::endl;
             m_size--;
