@@ -1,5 +1,5 @@
 # PraktikumVGJS
-
+<!--
 ## Installation
 ```bash
 $ mkdir external
@@ -46,3 +46,4 @@ If you want to install the library globally, also run:
 ```
 sudo cmake --build "build" --config Release --target install
 ```
+-->
