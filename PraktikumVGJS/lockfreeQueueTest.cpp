@@ -72,13 +72,13 @@ namespace lock_free {
                 hp_rec = hp_rec->next;
             }
             // sort plist to prepare for binary search
-            //sort(plist);                                  // need array sort
+            std::sort(plist, plist+pcount);
 
             // Stage 2: compare plist against rlist
             for (i = 0; i < R; ++i) {
-                //if (binary_search(rlist[i], plist))       // need array binary search
+                if (std::binary_search(plist, plist+pcount, rlist[i]))
                     next_rlist[new_rcount++] = rlist[i];
-                //else
+                else
                     delete rlist[i];
             }
             for (i = 0; i < new_rcount; ++i) 
@@ -88,7 +88,7 @@ namespace lock_free {
 
         void retireNode(node_t<JOB>* node) {
             rlist[rcount++] = node;
-            if (rcount >= 16)
+            if (rcount >= R)
                 scan(head_hp_rec);
         }
     public:
@@ -169,6 +169,7 @@ namespace lock_free {
             return true;
         }
     };
+
     JobQueue<Job> queue;
     void test_push() {
         for (int j = 0; j < 1; j++) {
