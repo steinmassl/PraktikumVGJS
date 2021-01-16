@@ -1,7 +1,7 @@
 #include "tests.h"
 
 namespace lock_free {
-
+    /*
     // Tagged pointer
 	template<typename JOB>
     struct pointer_t {
@@ -15,46 +15,50 @@ namespace lock_free {
             return (ptr == other.ptr && count == other.count);
         }
     };
-
-    template<typename JOB>
-    struct node_t {
-        JOB* job = nullptr;
-        std::atomic<pointer_t<JOB>> next = {};
-
-        node_t() {}
-    };
-
+    */
 
     /**
     * \brief Lockless FIFO queue class.
     *
-    * The queue allows for multiple producers multiple consumers. 
+    * The queue allows for multiple producers multiple consumers.
+    * When number of threads is not known beforehand (most of the time), algorithm extensions are necessary.
     * Lockless but suffering from use-after-delete problem.  
     */
     template<typename JOB = Job>
     class JobQueue {
-        std::atomic<pointer_t<JOB>>	    m_head;	        //points to first entry
-        std::atomic<pointer_t<JOB>> 	m_tail;	        //points to last entry
+
+        template<typename JOB>
+        struct node_t {
+            JOB* job = nullptr;
+            std::atomic<node_t<JOB>*> next = nullptr;
+
+            node_t() {}
+        };
+
+        std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry
+        std::atomic<node_t<JOB>*>   	m_tail;	        //points to last entry
         std::atomic<int32_t>	        m_size = 0;		//number of entries in the queue
 
-        // When number of threads is not known beforehand (most of the time), algorithm extensions are necessary
-
-        static constexpr int K = 1;     // Hazard Pointer per thread
+        // Use for testing
+        static constexpr int K = 2;     // Hazard Pointer per thread
         static constexpr int N = 16;    // Number of threads being used in VGJS
         static constexpr int H = K * N; // Total number of hazard pointer
         static constexpr int R = 2 * N; // Threshold for starting scan (R = H + Omega(H))
 
+        // Not necessary when using global HP array
         struct hp_rec_type {        // Hazard Pointer record
             node_t<JOB>* HP[K];
-            hp_rec_type* next;
+            hp_rec_type* next;      // Get record of next thread
         };
 
         hp_rec_type* head_hp_rec;   // Header of the hp_rec list
 
         // Per thread private variables
-        static thread_local node_t<JOB>* rlist[R];  // initially empty
-        static thread_local unsigned int rcount;    // initially 0
+        static inline thread_local node_t<JOB>* HP[K];          // Use thread local HP arrays or global array? is global array safe?
+        static inline thread_local node_t<JOB>* rlist[R];       // list of retired nodes
+        static inline thread_local unsigned int rcount{ 0 };    // number of nodes in rlist
 
+        // Delete nodes no longer in use by any thread
         void scan(hp_rec_type* head) {
             unsigned int i;
             unsigned int pcount = 0;
@@ -86,6 +90,7 @@ namespace lock_free {
             rcount = new_rcount;            
         }
 
+        // Use instead of delete to avoid use-after-free
         void retireNode(node_t<JOB>* node) {
             rlist[rcount++] = node;
             if (rcount >= R)
@@ -98,14 +103,10 @@ namespace lock_free {
             m_head.store(start, std::memory_order_release);
             m_tail.store(start, std::memory_order_release);     
         }
-
         JobQueue(const JobQueue<JOB>& queue) noexcept : JobQueue() {}
-
         ~JobQueue() {
-            delete m_head.load().ptr;   // Delete last dummy node
+            delete m_head.load();   // Delete last dummy node
         }
-
-
 
         /**
         * \brief Pushes a job onto the queue tail.
@@ -114,23 +115,23 @@ namespace lock_free {
         void push(JOB* job_to_push) {
             node_t<JOB>* new_node = new node_t<JOB>();
             new_node->job = job_to_push;
-            pointer_t<JOB> tail;
+            node_t<JOB>* tail = nullptr;
             while (true) {
-                tail = m_tail.load(std::memory_order_acquire);
-                pointer_t<JOB> next = tail.ptr->next.load(std::memory_order_acquire);
-                if (tail == m_tail.load(std::memory_order_acquire)) {
-                    if (next.ptr == nullptr) {
-                        bool successful_cas = tail.ptr->next.compare_exchange_weak(next, pointer_t(new_node, next.count + 1));
-                        if (successful_cas) {
-                            break;
-                        }
-                    }
-                    else {
-                        m_tail.compare_exchange_weak(tail, pointer_t(next.ptr, tail.count + 1));
-                    }
+                // Start setting Hazard Pointer
+                tail = m_tail.load(std::memory_order_relaxed);
+                HP[0] = tail;
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;
+                // End setting Hazard Pointer
+                node_t<JOB>* next = tail->next.load(std::memory_order_acquire);
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;
+                if (next != nullptr) {
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);
+                    continue;
                 }
+                if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;    // Use nullptr instead of next?
             }
-            m_tail.compare_exchange_weak(tail, pointer_t(new_node, tail.count + 1));
+            m_tail.compare_exchange_weak(tail, new_node, std::memory_order_acq_rel);
+            HP[0] = nullptr;
             m_size++;
         }
 
@@ -140,32 +141,32 @@ namespace lock_free {
         * \returns true when pop was successful
         */
         bool pop(JOB*& popped_job) {
-            pointer_t<JOB> head;
+            node_t<JOB>* head;
             while (true) {
+                // Start setting Hazard Pointer
                 head = m_head.load(std::memory_order_acquire);
-                pointer_t<JOB> tail = m_tail.load(std::memory_order_acquire);
-                pointer_t<JOB> next = head.ptr->next.load(std::memory_order_acquire);   // use-after-free problem when accessing head.ptr->next
-
-                if (head == m_head.load()) {
-                    if (head.ptr == tail.ptr) {
-                        if (next.ptr == nullptr) {
-                            return false;
-                        }
-                        m_tail.compare_exchange_weak(tail, pointer_t(next.ptr, tail.count + 1));
-                    }
-                    else {
-                        popped_job = next.ptr->job;
-                        bool successful_cas = m_head.compare_exchange_weak(head, pointer_t(next.ptr, head.count + 1));
-                        if (successful_cas)
-                            break;
-                    }
+                HP[0] = head;
+                if (head != m_head.load(std::memory_order_acquire)) continue;
+                // End setting Hazard Pointer
+                node_t<JOB>* tail = m_tail.load(std::memory_order_relaxed);
+                node_t<JOB>* next = head->next.load(std::memory_order_acquire);   // use-after-free problem when accessing head->next before HP was implemented
+                HP[1] = next;
+                if (head != m_head.load(std::memory_order_relaxed)) continue;
+                if (next == nullptr) {
+                    HP[0] = nullptr;
+                    return false;
                 }
+                if (head == tail) {
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release); 
+                    continue;
+                }
+				popped_job = next->job;
+				if(m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;
             }
-            // free dummy head node (might still be accessed)
-            delete head.ptr;
-            //std::cout << m_size << std::endl;
+            HP[0] = nullptr;
+            HP[1] = nullptr;
+            retireNode(head);
             m_size--;
-            //std::cout << m_size << std::endl;
             return true;
         }
     };
