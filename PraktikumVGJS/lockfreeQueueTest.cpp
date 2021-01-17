@@ -21,7 +21,7 @@ namespace lock_free {
     * \brief Lockless FIFO queue class.
     *
     * The queue allows for multiple producers multiple consumers.
-    * When number of threads is not known beforehand (most of the time), algorithm extensions are necessary.
+    * When number of threads is not known beforehand, algorithm extensions are necessary.
     * Lockless but suffering from use-after-delete problem.  
     */
     template<typename JOB = Job>
@@ -29,22 +29,29 @@ namespace lock_free {
 
         template<typename JOB>
         struct node_t {
-            JOB* job = nullptr;
-            std::atomic<node_t<JOB>*> next = nullptr;
+            JOB* job{ nullptr };
+            std::atomic<node_t<JOB>*> next{ nullptr };
 
             node_t() {}
         };
 
+        // Use for testing
+        static constexpr unsigned int K{ 2 };       // Hazard Pointer per thread
+        static constexpr unsigned int P{ 32 };      // Maximum number of threads
+        static constexpr unsigned int N{ K * P };    // Total number of hazard pointer
+        static constexpr unsigned int R{ 2 * N };    // Threshold for starting scan (R = H + Omega(H))
+
         std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry
         std::atomic<node_t<JOB>*>   	m_tail;	        //points to last entry
-        std::atomic<int32_t>	        m_size = 0;		//number of entries in the queue
+        std::atomic<int32_t>	        m_size{ 0 };	//number of entries in the queue
+        node_t<JOB>*                    m_HP[N]{};      // Use thread local HP arrays or global array? is global array safe?
 
-        // Use for testing
-        static constexpr int K = 2;     // Hazard Pointer per thread
-        static constexpr int N = 16;    // Number of threads being used in VGJS
-        static constexpr int H = K * N; // Total number of hazard pointer
-        static constexpr int R = 2 * N; // Threshold for starting scan (R = H + Omega(H))
+        // Per thread private variables
+        static inline thread_local node_t<JOB>* m_rlist[R]{};   // list of retired nodes
+        static inline thread_local unsigned int m_rcount{ 0 };  // number of nodes in rlist
 
+
+        /*
         // Not necessary when using global HP array
         struct hp_rec_type {        // Hazard Pointer record
             node_t<JOB>* HP[K];
@@ -52,54 +59,48 @@ namespace lock_free {
         };
 
         hp_rec_type* head_hp_rec;   // Header of the hp_rec list
+        */
 
-        // Per thread private variables
-        static inline thread_local node_t<JOB>* HP[K];          // Use thread local HP arrays or global array? is global array safe?
-        static inline thread_local node_t<JOB>* rlist[R];       // list of retired nodes
-        static inline thread_local unsigned int rcount{ 0 };    // number of nodes in rlist
 
-        // Delete nodes no longer in use by any thread
-        void scan(hp_rec_type* head) {
-            unsigned int i;
-            unsigned int pcount = 0;
-            unsigned int new_rcount = 0;
-            node_t<JOB>* plist[N];
-            node_t<JOB>* next_rlist[N];
+        // Free nodes no longer in use by any thread
+        void scan() {
+            unsigned int i, pcount{ 0 }, next_rcount{ 0 };
+            node_t<JOB>* hptr{ nullptr }; 
+            node_t<JOB>* plist[N]{};
+            node_t<JOB>* next_rlist[N]{};
 
             // Stage 1: Scan HP list and insert non-null values in plist
-            hp_rec_type* hp_rec = head;
-            while (hp_rec != nullptr) {
-                for (i = 0; i < K - 1; ++i) {
-                    if (hp_rec->HP[i] != nullptr)
-                        plist[pcount++] = hp_rec->HP[i];
-                }
-                hp_rec = hp_rec->next;
+            for (i = 0; i < N; ++i) {
+                hptr = m_HP[i];
+                if (hptr != nullptr)
+                    plist[pcount++] = hptr;
             }
-            // sort plist to prepare for binary search
+            // Stage 2: Sort plist to prepare for binary search
             std::sort(plist, plist+pcount);
-
-            // Stage 2: compare plist against rlist
+            // maybe remove duplicates
+            // Stage 3: compare plist against rlist and free nodes no longer in use
             for (i = 0; i < R; ++i) {
-                if (std::binary_search(plist, plist+pcount, rlist[i]))
-                    next_rlist[new_rcount++] = rlist[i];
+                if (std::binary_search(plist, plist + pcount, m_rlist[i]))
+                    next_rlist[next_rcount++] = m_rlist[i];
                 else
-                    delete rlist[i];
+                    delete m_rlist[i];    // Alternatively recycle into free_list
             }
-            for (i = 0; i < new_rcount; ++i) 
-                rlist[i] = next_rlist[i];
-            rcount = new_rcount;            
+            // Stage 4: Form new array of retired nodes
+            for (i = 0; i < next_rcount; ++i)
+                m_rlist[i] = next_rlist[i];
+            m_rcount = next_rcount;
         }
 
         // Use instead of delete to avoid use-after-free
         void retireNode(node_t<JOB>* node) {
-            rlist[rcount++] = node;
-            if (rcount >= R)
-                scan(head_hp_rec);
+            m_rlist[m_rcount++] = node;
+            if (m_rcount >= R)
+                scan();
         }
     public:
         JobQueue() {
             // Head and Tail point to dummy node
-            node_t<JOB>* start = new node_t<JOB>();
+            node_t<JOB>* start{ new node_t<JOB>() };
             m_head.store(start, std::memory_order_release);
             m_tail.store(start, std::memory_order_release);     
         }
@@ -113,16 +114,16 @@ namespace lock_free {
         * \param[in] job_to_push The job to be pushed into the queue.
         */
         void push(JOB* job_to_push) {
-            node_t<JOB>* new_node = new node_t<JOB>();
+            node_t<JOB>* new_node{ new node_t<JOB>() };  // Alternatively use existing node from free_list
             new_node->job = job_to_push;
-            node_t<JOB>* tail = nullptr;
+            node_t<JOB>* tail;
             while (true) {
                 // Start setting Hazard Pointer
                 tail = m_tail.load(std::memory_order_relaxed);
-                HP[0] = tail;
+                m_HP[0] = tail;
                 if (tail != m_tail.load(std::memory_order_acquire)) continue;
                 // End setting Hazard Pointer
-                node_t<JOB>* next = tail->next.load(std::memory_order_acquire);
+                node_t<JOB>* next{ tail->next.load(std::memory_order_acquire) };
                 if (tail != m_tail.load(std::memory_order_acquire)) continue;
                 if (next != nullptr) {
                     m_tail.compare_exchange_weak(tail, next, std::memory_order_release);
@@ -131,7 +132,7 @@ namespace lock_free {
                 if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;    // Use nullptr instead of next?
             }
             m_tail.compare_exchange_weak(tail, new_node, std::memory_order_acq_rel);
-            HP[0] = nullptr;
+            m_HP[0] = nullptr;
             m_size++;
         }
 
@@ -145,15 +146,15 @@ namespace lock_free {
             while (true) {
                 // Start setting Hazard Pointer
                 head = m_head.load(std::memory_order_acquire);
-                HP[0] = head;
+                m_HP[0] = head;
                 if (head != m_head.load(std::memory_order_acquire)) continue;
                 // End setting Hazard Pointer
-                node_t<JOB>* tail = m_tail.load(std::memory_order_relaxed);
-                node_t<JOB>* next = head->next.load(std::memory_order_acquire);   // use-after-free problem when accessing head->next before HP was implemented
-                HP[1] = next;
+                node_t<JOB>* tail{ m_tail.load(std::memory_order_relaxed) };
+                node_t<JOB>* next{ head->next.load(std::memory_order_acquire) };   // use-after-free problem when accessing head->next before HP was implemented
+                m_HP[1] = next;
                 if (head != m_head.load(std::memory_order_relaxed)) continue;
                 if (next == nullptr) {
-                    HP[0] = nullptr;
+                    m_HP[0] = nullptr;
                     return false;
                 }
                 if (head == tail) {
@@ -163,8 +164,8 @@ namespace lock_free {
 				popped_job = next->job;
 				if(m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;
             }
-            HP[0] = nullptr;
-            HP[1] = nullptr;
+            m_HP[0] = nullptr;
+            m_HP[1] = nullptr;
             retireNode(head);
             m_size--;
             return true;
@@ -173,13 +174,13 @@ namespace lock_free {
 
     JobQueue<Job> queue;
     void test_push() {
-        for (int j = 0; j < 1; j++) {
+        for (int j = 0; j < 1000; j++) {
             Job* job = new Job(n_pmr::new_delete_resource());
             queue.push(job);
         }
     }
     void test_pop() {
-        for (int j = 0; j < 2; j++) {
+        for (int j = 0; j < 2000; j++) {
             Job* job = nullptr;
             bool pop = queue.pop(job);
             std::cout << "Pop: " << pop << std::endl;
@@ -188,11 +189,10 @@ namespace lock_free {
 
 	Coro<> test() {
 		for (int i = 0; i < 16; i++) {
-            co_await[]() { test_push(); };
+            schedule([]() { test_push(); });
 		}
-
 		for (int i = 0; i < 16; i++) {
-            co_await[]() { test_pop(); };
+            schedule([]() { test_pop(); });
 		}
         co_return;
 	}

@@ -32,7 +32,7 @@ Coro<> startFixedTimeBenchmarks(const uint32_t num_jobs, const uint32_t num_sec,
 
 Coro<> startJobSystemBenchmarks(const uint32_t num_jobs, const uint32_t num_seconds, const uint32_t num_threads) {
 
-	co_await startFixedTimeBenchmarks(num_jobs, num_seconds, num_threads);
+	//co_await startFixedTimeBenchmarks(num_jobs, num_seconds, num_threads);
 	//co_await startFixedSizeBenchmarks();
 
 	std::cout << std::endl
@@ -40,7 +40,7 @@ Coro<> startJobSystemBenchmarks(const uint32_t num_jobs, const uint32_t num_seco
 	std::cout << std::endl;
 
 	// Test Lock-free queue
-	//co_await lock_free::test();
+	co_await lock_free::test();
 
 	vgjs::terminate();
 	co_return;
