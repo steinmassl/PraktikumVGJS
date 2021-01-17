@@ -22,6 +22,9 @@
     <ClCompile Include="PraktikumVGJS\work.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PraktikumVGJS\test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PraktikumVGJS\mctsGame.h">

@@ -18,11 +18,11 @@ namespace lock_free {
     */
 
     /**
-    * \brief Lockless FIFO queue class.
+    * \brief Lock-free FIFO queue class.
     *
     * The queue allows for multiple producers multiple consumers.
     * When number of threads is not known beforehand, algorithm extensions are necessary.
-    * Lockless but suffering from use-after-delete problem.  
+    * Use maximum number of threads (P) until then.
     */
     template<typename JOB = Job>
     class JobQueue {
@@ -35,7 +35,6 @@ namespace lock_free {
             node_t() {}
         };
 
-        // Use for testing
         static constexpr unsigned int K{ 2 };       // Hazard Pointer per thread
         static constexpr unsigned int P{ 32 };      // Maximum number of threads
         static constexpr unsigned int N{ K * P };    // Total number of hazard pointer
@@ -109,6 +108,30 @@ namespace lock_free {
             delete m_head.load();   // Delete last dummy node
         }
 
+		/**
+        * \brief Deallocate all Jobs in the queue.
+        * Since Jobs and coros use different allocation strategies, for each entry a deallocator
+        * is used for deallocation.
+        */
+        uint32_t clear() {
+            uint32_t res = m_size;
+            JOB* job = pop();                   //deallocate jobs that run a function
+            while (job != nullptr) {            //because they were allocated by the JobSystem
+                auto da = job->get_deallocator(); //get deallocator
+                da.deallocate(job);             //deallocate the memory
+                job = pop();                    //get next entry
+            }
+            return res;
+        }
+
+        /**
+        * \brief Get the number of jobs currently in the queue.
+        * \returns the number of jobs (Coros and Jobs) currently in the queue.
+        */
+        uint32_t size() {
+            return m_size.load(std::memory_order_acquire);
+        }
+
         /**
         * \brief Pushes a job onto the queue tail.
         * \param[in] job_to_push The job to be pushed into the queue.
@@ -141,7 +164,8 @@ namespace lock_free {
         * \param[in] popped_job The object that will be assigned with the popped job
         * \returns true when pop was successful
         */
-        bool pop(JOB*& popped_job) {
+        JOB* pop() {
+            JOB* res = nullptr;
             node_t<JOB>* head;
             while (true) {
                 // Start setting Hazard Pointer
@@ -155,20 +179,20 @@ namespace lock_free {
                 if (head != m_head.load(std::memory_order_relaxed)) continue;
                 if (next == nullptr) {
                     m_HP[0] = nullptr;
-                    return false;
+                    return nullptr;
                 }
                 if (head == tail) {
                     m_tail.compare_exchange_weak(tail, next, std::memory_order_release); 
                     continue;
                 }
-				popped_job = next->job;
+				res = next->job;
 				if(m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;
             }
             m_HP[0] = nullptr;
             m_HP[1] = nullptr;
             retireNode(head);
             m_size--;
-            return true;
+            return res;
         }
     };
 
@@ -182,8 +206,8 @@ namespace lock_free {
     void test_pop() {
         for (int j = 0; j < 2000; j++) {
             Job* job = nullptr;
-            bool pop = queue.pop(job);
-            std::cout << "Pop: " << pop << std::endl;
+            job = queue.pop();
+            std::cout << "Pop: " << (bool) job << std::endl;
         }
     }
 

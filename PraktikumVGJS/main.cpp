@@ -2,7 +2,6 @@
 #include "tests.h"
 //#include "benchmark.h"
 
-
 // General Settings
 static constexpr uint32_t g_num_threads = 16;		// Number of threads to use in the VGJS
 static constexpr uint32_t g_num_seconds = 5;		// Number of seconds to run a fixed-time benchmark
@@ -35,12 +34,15 @@ Coro<> startJobSystemBenchmarks(const uint32_t num_jobs, const uint32_t num_seco
 	//co_await startFixedTimeBenchmarks(num_jobs, num_seconds, num_threads);
 	//co_await startFixedSizeBenchmarks();
 
+	// Test Lock-free queue
+	//co_await lock_free::test();
+
+	// Run test.cpp from Prof. Helmut Hlavacs
+	co_await test::start_test();
+
 	std::cout << std::endl
 		<< "Threads used in VGJS: " << num_threads << std::endl;
 	std::cout << std::endl;
-
-	// Test Lock-free queue
-	co_await lock_free::test();
 
 	vgjs::terminate();
 	co_return;

@@ -30,11 +30,9 @@ namespace mctsCoro {
 }
 
 namespace lock_free {
-
-	template<typename JOB = Job>
-	struct pointer_t;
-	template<typename JOB = Job>
-	struct node_t;
-
 	Coro<> test();
+}
+
+namespace test {
+	Coro<> start_test();
 }

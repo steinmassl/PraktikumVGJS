@@ -25,6 +25,7 @@
     <ClCompile Include="PraktikumVGJS\mandelbrotFunc.cpp" />
     <ClCompile Include="PraktikumVGJS\mctsCoro.cpp" />
     <ClCompile Include="PraktikumVGJS\mctsFunc.cpp" />
+    <ClCompile Include="PraktikumVGJS\test.cpp" />
     <ClCompile Include="PraktikumVGJS\work.cpp" />
   </ItemGroup>
   <ItemGroup>
