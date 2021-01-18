@@ -233,6 +233,16 @@ namespace vgjs {
         };
     };
 
+    class JobQueue_base {
+        friend JobSystem;
+    protected:
+        static constexpr unsigned int K{ 2 };       // Hazard Pointer per thread
+        static constexpr unsigned int P{ 32 };      // Maximum number of threads - fixed value until better solution
+        static constexpr unsigned int N{ K * P };   // Total number of hazard pointer
+        static constexpr unsigned int R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
+
+        static inline thread_local thread_index m_thread_index{0};  // Initialize with 0 until threads are ready and call initHP()
+    };
 
     /**
 * \brief Lock-free FIFO queue class.
@@ -242,7 +252,7 @@ namespace vgjs {
 * Use maximum number of threads (P) until then. Performance w/ vs w/o extensions?
 */
     template<typename JOB = Job_base>
-    class JobQueue {
+    class JobQueue : JobQueue_base {
         friend JobSystem;
 
         // Node holding pointer to job and next
@@ -252,22 +262,16 @@ namespace vgjs {
             std::atomic<node_t<JOB>*> next{ nullptr };
         };
 
-        static constexpr unsigned int K{ 2 };       // Hazard Pointer per thread
-        static constexpr unsigned int P{ 32 };      // Maximum number of threads - fixed value until better solution
-        static constexpr unsigned int N{ K * P };   // Total number of hazard pointer
-        static constexpr unsigned int R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
-
         std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry
         std::atomic<node_t<JOB>*>   	m_tail;	        //points to last entry
         std::atomic<int32_t>	        m_size{ 0 };	//number of entries in the queue
-        static inline node_t<JOB>*                    m_HP[N]{};      // Store all hazard pointers
+        static inline node_t<JOB>*      m_HP[N]{};      // All Hazard pointers (read all, write only to 2 thread HP)
 
         // Per thread private variables
-        //static inline JobSystem& js = JobSystem::instance();
-        static inline thread_local node_t<JOB>** m_hp0;     // First hazard pointer of thread
-        static inline thread_local node_t<JOB>** m_hp1; // Second hazard pointer of thread
+        static inline thread_local node_t<JOB>** m_hp0{ &m_HP[K * m_thread_index.value] };     // Thread hazard pointer
+        static inline thread_local node_t<JOB>** m_hp1{ &m_HP[K * m_thread_index.value + 1] }; // FIFO Queue requires 2 HP 
         static inline thread_local node_t<JOB>* m_rlist[R]{};       // List of retired nodes
-        static inline thread_local unsigned int m_rcount{ 0 };      // Number of nodes in rlist
+        static inline thread_local unsigned int m_rcount{ 0 };      // Number of retired nodes
 
         // Free nodes no longer in use by any thread
         void scan() {
@@ -284,7 +288,9 @@ namespace vgjs {
             }
             // Stage 2: Sort plist to prepare for binary search
             std::sort(plist, plist + pcount);
-            // maybe remove duplicates/tallying entries
+
+            // maybe remove duplicates/tallying entries here
+
             // Stage 3: compare plist against rlist and free nodes no longer in use
             for (i = 0; i < R; ++i) {
                 if (std::binary_search(plist, plist + pcount, m_rlist[i]))
@@ -304,17 +310,23 @@ namespace vgjs {
             if (m_rcount >= R)
                 scan();
         }
+
     public:
         JobQueue() {
             // Head and Tail point to dummy node
             node_t<JOB>* start{ new node_t<JOB>() };
             m_head.store(start, std::memory_order_release);
             m_tail.store(start, std::memory_order_release);
-            std::cout << "Created JobQueue" << "\n";
         }
         JobQueue(const JobQueue<JOB>& queue) noexcept : JobQueue() {}
         ~JobQueue() {
             delete m_head.load(std::memory_order_relaxed);   // Delete last dummy node
+        }
+
+        // Set correct location of thread-owned hazard pointers (currently in thread_task())
+        void initHP() {
+            m_hp0 = &m_HP[K * m_thread_index.value];
+            m_hp1 = &m_HP[K * m_thread_index.value + 1];
         }
 
         /**
@@ -346,26 +358,23 @@ namespace vgjs {
         * \param[in] job_to_push The job to be pushed into the queue.
         */
         void push(JOB* job_to_push) {
-            node_t<JOB>* new_node{ new node_t<JOB>() };  // Alternatively use existing node from free_list
-            new_node->job = job_to_push;
-            job_to_push->m_thread_index;
+            node_t<JOB>* new_node{ new node_t<JOB>() };     // Allocate new node. Alternatively use existing node from free_list
+            new_node->job = job_to_push;                    // Copy job into node - next pointer of node already nullptr
             node_t<JOB>* tail;
-            while (true) {
-                // Start setting Hazard Pointer
-                tail = m_tail.load(std::memory_order_relaxed);
-                *m_hp0 = tail;
-                if (tail != m_tail.load(std::memory_order_acquire)) continue;
-                // End setting Hazard Pointer
-                node_t<JOB>* next{ tail->next.load(std::memory_order_acquire) };
-                if (tail != m_tail.load(std::memory_order_acquire)) continue;
-                if (next != nullptr) {
-                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);
-                    continue;
+            while (true) {                                                          // Try until job pushed into queue
+                tail = m_tail.load(std::memory_order_relaxed);                      // Read Queue tail
+                *m_hp0 = tail;                                                      // Set hazard pointer
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;       // Check if hazard pointer is valid, otherwise try again
+                node_t<JOB>* next{ tail->next.load(std::memory_order_acquire) };    // Read next node of tail
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;       // Is Queue tail still consistent? if not, try again
+                if (next != nullptr) {                                              // Was tail pointing to the last node?
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail was not last node, swing tail to next node
+                    continue;                                                               // Try to push again
                 }
-                if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;
-            }
-            m_tail.compare_exchange_weak(tail, new_node, std::memory_order_acq_rel);
-            *m_hp0 = nullptr;
+                if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;     // Try to link new node to end of list,
+            }                                                                                               // if successful, push is done, exit loop
+            m_tail.compare_exchange_weak(tail, new_node, std::memory_order_acq_rel);            // Swing tail to the inserted node
+            *m_hp0 = nullptr;           // No longer hazardous
             m_size++;
         }
 
@@ -374,34 +383,32 @@ namespace vgjs {
         * \returns a job or nullptr.
         */
         JOB* pop() {
-            JOB* res = nullptr;
+            JOB* res = nullptr;     // Pointer to return
             node_t<JOB>* head;
-            while (true) {
-                // Start setting Hazard Pointer
-                head = m_head.load(std::memory_order_acquire);
-                *m_hp0 = head;
-                if (head != m_head.load(std::memory_order_acquire)) continue;
-                // End setting Hazard Pointer
-                node_t<JOB>* tail{ m_tail.load(std::memory_order_relaxed) };
-                node_t<JOB>* next{ head->next.load(std::memory_order_acquire) };
-                *m_hp1 = next;
-                if (head != m_head.load(std::memory_order_relaxed)) continue;
-                if (next == nullptr) {
-                    *m_hp0 = nullptr;
-                    return nullptr;
+            while (true) {          // Try until job popped from queue
+                head = m_head.load(std::memory_order_acquire);                      // Read Queue head
+                *m_hp0 = head;                                                      // Set first hazard pointer
+                if (head != m_head.load(std::memory_order_acquire)) continue;       // Check if hazard pointer is valid, otherwise try again
+                node_t<JOB>* tail{ m_tail.load(std::memory_order_relaxed) };        // Read Queue tail
+                node_t<JOB>* next{ head->next.load(std::memory_order_acquire) };    // Read next node of head
+                *m_hp1 = next;                                                      // Set second hazard pointer
+                if (head != m_head.load(std::memory_order_relaxed)) continue;       // Is Queue head still consistent? if not, try again
+                if (next == nullptr) {                                              // Is Queue empty?
+                    *m_hp0 = nullptr;                                               // No longer hazardous, second HP already nullptr
+                    return nullptr;                                                 // Queue was empty, no pop
                 }
-                if (head == tail) {
-                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);
-                    continue;
+                if (head == tail) {                                                         // Is tail falling behind?
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail falling behind, advance it
+                    continue;                                                               // Try to pop again
                 }
-                res = next->job;
-                if (m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;
-            }
-            *m_hp0 = nullptr;
+                res = next->job;                                                                    // Read value before CAS, otherwise another pop might free the next node
+                if (m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;     // Try to swing Queue head to the next node,
+            }                                                                                       // if successful, pop is done, exit loop
+            *m_hp0 = nullptr;       // No longer hazardous
             *m_hp1 = nullptr;
-            retireNode(head);
+            retireNode(head);       // Safe to retire previous Queue head node
             m_size--;
-            return res;
+            return res;             // Return job from previous Queue head
         }
     };
 
@@ -583,6 +590,15 @@ namespace vgjs {
         void thread_task(thread_index threadIndex = thread_index(0) ) noexcept {
             constexpr uint32_t NOOP = 10;                                   //number of empty loops until garbage collection
             m_thread_index = threadIndex;	                                //Remember your own thread index number
+
+            JobQueue_base::m_thread_index = threadIndex;        // Set threadindex for HP
+            
+            // Correctly initialize HP in all JobQueues
+            for (auto& queue : m_global_queues) queue.initHP();
+            for (auto& queue : m_local_queues) queue.initHP();
+            m_recycle.initHP();
+            m_delete.initHP();
+
             static std::atomic<uint32_t> thread_counter = m_thread_count.load();	//Counted down when started
 
             thread_counter--;			                                    //count down
