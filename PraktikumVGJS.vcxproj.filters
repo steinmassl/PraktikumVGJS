@@ -60,4 +60,7 @@
       <UniqueIdentifier>{b682ebab-7f5f-4088-b888-1266d19b6e0b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="script.sh" />
+  </ItemGroup>
 </Project>

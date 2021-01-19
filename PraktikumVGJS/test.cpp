@@ -108,6 +108,32 @@ namespace test {
 	};
 
 
+	Coro<> test_utilization_drop( int sec) {
+		auto start = high_resolution_clock::now();
+		auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+		auto& js = JobSystem::instance();
+		auto num = js.get_thread_count().value / 3;
+		num = 1; // std::max(num, 1);
+		std::pmr::vector<Function> perfv{};
+		for (int i = 0; i < num; ++i) {
+			perfv.push_back(Function{ []() {func_perf(10000); }, thread_index{i} });
+		}
+		std::pmr::vector<Function> perfv2{};
+		for (int i = 0; i < js.get_thread_count().value; ++i) {
+			perfv2.push_back(Function{ []() {func_perf(10000); }, thread_index{i} });
+		}
+
+		do {		
+			co_await perfv;
+			duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+		} while (duration.count() < sec);
+
+		co_await perfv2;		//wake up threads
+
+		co_return;
+	}
+
+
 	template<bool WITHALLOCATE = false, typename FT1 = Function, typename FT2 = std::function<void(void)>>
 	Coro<std::tuple<double,double>> performance_function(bool print = true, bool wrtfunc = true, int num = 1000, int micro = 1, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
 		auto& js = JobSystem::instance();
@@ -181,8 +207,7 @@ namespace test {
 
 
 	template<bool WITHALLOCATE = false, typename FT1, typename FT2>
-	Coro<> performance_driver(std::string text, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
-		int runtime = 200000;
+	Coro<> performance_driver(std::string text, std::pmr::memory_resource* mr = std::pmr::new_delete_resource(), int runtime = 400000) {
 		int num = runtime;
 		const int st = 0;
 		const int mt = 100;
@@ -212,23 +237,36 @@ namespace test {
 
 #define TESTRESULT(N, S, EXPR, B, C) \
 		EXPR; \
-		std::cout << "Test " << std::right << std::setw(3) << N << "  " << std::left << std::setw(24) << S << " " << ( B ? "PASSED":"FAILED" ) << std::endl;\
+		std::cout << "Test " << std::right << std::setw(3) << N << "  " << std::left << std::setw(30) << S << " " << ( B ? "PASSED":"FAILED" ) << std::endl;\
 		C;
 
 	Coro<> start_test() {
 		int number = 0;
 		std::atomic<int> counter = 0;
 		auto& js = JobSystem::instance();
-		
-		/*
-		//std::function<void(void)>
-		TESTRESULT(++number, "Single function",		co_await[&]() { func(&counter); }, counter.load() == 1, counter = 0);
-		TESTRESULT(++number, "10 functions",		co_await[&]() { func(&counter, 10); }, counter.load() == 10, counter = 0);
-		TESTRESULT(++number, "Parallel functions",	co_await parallel([&]() { func(&counter); }, [&]() { func(&counter); }), counter.load() == 2, counter = 0);
-		TESTRESULT(++number, "Parallel functions",	co_await parallel([&]() { func(&counter, 10); }, [&]() { func(&counter, 10); }), counter.load() == 20, counter = 0);
 
-		TESTRESULT(++number, "Single function c",	co_await[&]() { func2(&counter); }, counter.load() == 1, counter = 0);
-		TESTRESULT(++number, "10 functions c",		co_await[&]() { func2(&counter, 10); }, counter.load() == 10, counter = 0);
+		std::cout << "\n\nTest utilization drop\n";
+		co_await test_utilization_drop(10);
+
+		/*
+		std::cout << "Unit Tests\n";
+
+		//std::function<void(void)>
+		TESTRESULT(++number, "Single function", co_await[&]() { func(&counter); }, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "10 functions", co_await[&]() { func(&counter, 10); }, counter.load() == 10, counter = 0);
+		TESTRESULT(++number, "Parallel functions", co_await parallel([&]() { func(&counter); }, [&]() { func(&counter); }), counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Parallel functions", co_await parallel([&]() { func(&counter, 10); }, [&]() { func(&counter, 10); }), counter.load() == 20, counter = 0);
+		auto f1 = [&]() { func(&counter); };
+		TESTRESULT(++number, "Single function ref", co_await f1, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "Single 2 functions ref", co_await parallel(f1, f1), counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Single 2 functions ref again", co_await parallel(f1, f1), counter.load() == 2, counter = 0);
+		auto f2 = std::function<void(void)>{ [&]() { func(&counter); }};
+		TESTRESULT(++number, "Single function ref", co_await f2, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "Single 2 functions ref", co_await parallel(f2, f2), counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Single 2 functions ref again", co_await parallel(f2, f2), counter.load() == 2, counter = 0);
+
+		TESTRESULT(++number, "Single function c",	co_await [&]() { func2(&counter); }, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "10 functions c",		co_await [&]() { func2(&counter, 10); }, counter.load() == 10, counter = 0);
 		TESTRESULT(++number, "Parallel functions c", co_await parallel([&]() { func2(&counter); }, [&]() { func2(&counter); }), counter.load() == 2, counter = 0);
 		TESTRESULT(++number, "Parallel functions c", co_await parallel([&]() { func2(&counter, 10); }, [&]() { func2(&counter, 10); }), counter.load() == 20, counter = 0);
 
@@ -236,11 +274,14 @@ namespace test {
 		TESTRESULT(++number, "Vector 10 functions", co_await std::pmr::vector<std::function<void(void)>>{ [&]() { func(&counter, 10); } }, counter.load() == 10, counter = 0);
 		std::pmr::vector<std::function<void(void)>> vf1{ [&]() { func(&counter); }, [&]() { func(&counter); } };
 		TESTRESULT(++number, "Vector 2 functions",  co_await vf1, counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Vector 2 functions again", co_await vf1, counter.load() == 2, counter = 0);
 		std::pmr::vector<std::function<void(void)>> vf2{ [&]() { func(&counter, 10); }, [&]() { func(&counter, 10); } };
 		TESTRESULT(++number, "Vector 2x10 functions", co_await vf2, counter.load() == 20, counter = 0);
+		TESTRESULT(++number, "Vector 2x10 functions again", co_await vf2, counter.load() == 20, counter = 0);
 		std::pmr::vector<std::function<void(void)>> vf2_1{ [&]() { func(&counter, 10); }, [&]() { func(&counter, 10); } };
 		std::pmr::vector<std::function<void(void)>> vf2_2{ [&]() { func(&counter, 10); }, [&]() { func(&counter, 10); } };
 		TESTRESULT(++number, "Vector Par functions", co_await parallel( vf2_1, vf2_2) , counter.load() == 40, counter = 0);
+		TESTRESULT(++number, "Vector Par functions again", co_await parallel(vf2_1, vf2_2), counter.load() == 40, counter = 0);
 
 		TESTRESULT(++number, "Vector function c", co_await std::pmr::vector<std::function<void(void)>>{ [&]() { func2(&counter); } }, counter.load() == 1, counter = 0);
 		TESTRESULT(++number, "Vector 10 functions c", co_await std::pmr::vector<std::function<void(void)>>{ [&]() { func2(&counter, 10); } }, counter.load() == 10, counter = 0);
@@ -253,20 +294,28 @@ namespace test {
 		TESTRESULT(++number, "Vector Par functions c", co_await parallel(vf2_1c, vf2_2c), counter.load() == 40, counter = 0);
 
 		//Function
-		TESTRESULT(++number, "Single Function", co_await Function([&]() { func(&counter); }), counter.load() == 1, counter = 0);
-		TESTRESULT(++number, "10 Functions", co_await Function([&]() { func(&counter, 10); }), counter.load() == 10, counter = 0);
-		TESTRESULT(++number, "Parallel Functions", co_await parallel(Function([&]() { func(&counter); }), Function([&]() { func(&counter); })), counter.load() == 2, counter = 0);
-		TESTRESULT(++number, "Parallel Functions", co_await parallel(Function([&]() { func(&counter, 10); }), Function([&]() { func(&counter, 10); })), counter.load() == 20, counter = 0);
+		TESTRESULT(++number, "Single Function", co_await Function{ [&]() { func(&counter); } }, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "10 Functions", co_await Function{ [&]() { func(&counter, 10); } }, counter.load() == 10, counter = 0);
+		TESTRESULT(++number, "Parallel Functions", co_await parallel(Function{ [&]() { func(&counter); } }, Function{ [&]() { func(&counter); } }), counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Parallel Functions", co_await parallel(Function{ [&]() { func(&counter, 10); } }, Function{ [&]() { func(&counter, 10); } }), counter.load() == 20, counter = 0);
+		auto f3 = Function{ [&]() { func(&counter); } };
+		TESTRESULT(++number, "Single Function ref", co_await f3, counter.load() == 1, counter = 0);
+		TESTRESULT(++number, "Single 2 Functions ref", co_await parallel(f3, f3), counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Single 2 Functions ref again", co_await parallel(f3, f3), counter.load() == 2, counter = 0);
 
 		TESTRESULT(++number, "Vector Function", co_await std::pmr::vector<Function>{ Function{ [&]() { func(&counter); } } }, counter.load() == 1, counter = 0);
 		TESTRESULT(++number, "Vector 10 Functions", co_await std::pmr::vector<Function>{ Function{ [&]() { func(&counter, 10); } } }, counter.load() == 10, counter = 0);
 		std::pmr::vector<Function> vf3{ Function{[&]() { func(&counter); }}, Function{[&]() { func(&counter); }} };
-		TESTRESULT(++number, "Vector 2 Functions", co_await vf3, counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Vector Function ref", co_await vf3, counter.load() == 2, counter = 0);
+		TESTRESULT(++number, "Vector Function ref again", co_await vf3, counter.load() == 2, counter = 0);
+
 		std::pmr::vector<Function> vf4{ Function{[&]() { func(&counter, 10); }}, Function{[&]() { func(&counter, 10); }} };
 		TESTRESULT(++number, "Vector 2x10 Functions", co_await vf4, counter.load() == 20, counter = 0);
+		TESTRESULT(++number, "Vector 2x10 Functions again", co_await vf4, counter.load() == 20, counter = 0);
 		std::pmr::vector<Function> vf4_1{ Function{ [&]() { func(&counter, 10); }}, Function{ [&]() { func(&counter, 10); } } };
 		std::pmr::vector<Function> vf4_2{ Function{ [&]() { func(&counter, 10); }}, Function{ [&]() { func(&counter, 10); } } };
 		TESTRESULT(++number, "Vector Par Functions", co_await parallel(vf4_1, vf4_2), counter.load() == 40, counter = 0);
+		TESTRESULT(++number, "Vector Par Functions again", co_await parallel(vf4_1, vf4_2), counter.load() == 40, counter = 0);
 
 		//Coro
 		TESTRESULT(++number, "Single Coro<>", co_await coro_void(std::allocator_arg, &g_global_mem, &counter), counter.load() == 1, counter = 0);
@@ -398,9 +447,8 @@ namespace test {
 		TESTRESULT(++number, "Tagged jobs 2", co_await tag{ 2 }, counter.load() == 4, );
 		TESTRESULT(++number, "Tagged jobs 3", co_await tag{ 3 }, counter.load() == 10, counter = 0);
 		*/
-		
 
-		std::cout << "\nPerformance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95\n";
+		std::cout << "\n\nPerformance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95\n";
 
 		co_await performance_driver<false,Function, std::function<void(void)>>("std::function calls (w / o allocate)" );
 		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
@@ -412,13 +460,15 @@ namespace test {
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_f);
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_f);
 
-		vgjs::terminate();
+
+		std::cout << "\n\nTest utilization drop\n";
+		co_await test_utilization_drop(10);
+
 		co_return;
 	}
 }
 
 /*
-
 namespace coro {
 	void test();
 }
@@ -455,6 +505,5 @@ namespace examples {
 		}
 	}
 }
-
 */
 

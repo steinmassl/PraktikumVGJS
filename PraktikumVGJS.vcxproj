@@ -38,6 +38,9 @@
     <ClInclude Include="PraktikumVGJS\vgjs.h" />
     <ClInclude Include="PraktikumVGJS\tests.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="script.sh" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{7C9354C9-25BF-46F2-B234-58B8E3A8D738}</ProjectGuid>
