@@ -19,10 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="PraktikumVGJS\lockfreeQueueTest.cpp" />
+    <ClCompile Include="PraktikumVGJS\lockfreeQueue.cpp" />
     <ClCompile Include="PraktikumVGJS\main.cpp" />
-    <ClCompile Include="PraktikumVGJS\mandelbrotCoro.cpp" />
-    <ClCompile Include="PraktikumVGJS\mandelbrotFunc.cpp" />
+    <ClCompile Include="PraktikumVGJS\mandelbrot.cpp" />
     <ClCompile Include="PraktikumVGJS\mctsCoro.cpp" />
     <ClCompile Include="PraktikumVGJS\mctsFunc.cpp" />
     <ClCompile Include="PraktikumVGJS\test.cpp" />

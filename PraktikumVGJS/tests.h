@@ -6,18 +6,11 @@
 using namespace vgjs;
 
 namespace work {
-	Coro<> benchmarkWithFixedTime(const uint32_t, const uint32_t, const uint32_t);
+	Coro<> test();
+	//Coro<> benchmarkWithFixedTime(const uint32_t, const uint32_t, const uint32_t);
 }
 
-//void BM_Work(benchmark::State&);
-
-namespace mandelbrotFunc {
-
-	void test();
-	void benchmarkWithFixedTime(const uint32_t, const uint32_t);
-}
-
-namespace mandelbrotCoro {
+namespace mandelbrot {
 	Coro<> test();
 }
 
@@ -36,3 +29,5 @@ namespace lock_free {
 namespace test {
 	Coro<> start_test();
 }
+
+//void BM_Work(benchmark::State&);

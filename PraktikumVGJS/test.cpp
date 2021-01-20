@@ -245,8 +245,8 @@ namespace test {
 		std::atomic<int> counter = 0;
 		auto& js = JobSystem::instance();
 
-		std::cout << "\n\nTest utilization drop\n";
-		co_await test_utilization_drop(10);
+		//std::cout << "\n\nTest utilization drop\n";
+		//co_await test_utilization_drop(10);
 
 		/*
 		std::cout << "Unit Tests\n";
@@ -447,7 +447,6 @@ namespace test {
 		TESTRESULT(++number, "Tagged jobs 2", co_await tag{ 2 }, counter.load() == 4, );
 		TESTRESULT(++number, "Tagged jobs 3", co_await tag{ 3 }, counter.load() == 10, counter = 0);
 		*/
-
 		std::cout << "\n\nPerformance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95\n";
 
 		co_await performance_driver<false,Function, std::function<void(void)>>("std::function calls (w / o allocate)" );
@@ -461,9 +460,10 @@ namespace test {
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_f);
 
 
-		std::cout << "\n\nTest utilization drop\n";
-		co_await test_utilization_drop(10);
+		//std::cout << "\n\nTest utilization drop\n";
+		//co_await test_utilization_drop(10);
 
+		vgjs::terminate();
 		co_return;
 	}
 }
