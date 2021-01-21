@@ -28,7 +28,7 @@ namespace work {
     // Do some work not optimized by the compiler - use this to test speedup
     void func_perf(int micro, int i = 1) {
         volatile unsigned int counter = 1;
-        volatile double root = 0.0f;
+        volatile double root = 0.0;
 
         if (i > 1) schedule([=]() { func_perf(micro, i - 1); });
 
@@ -90,7 +90,7 @@ namespace work {
         double speedup0 = (double)duration0.count() / (double)duration2.count();
         double efficiency0 = speedup0 / js.get_thread_count().value;
         if (wrtfunc) {
-            if (print && efficiency0 > 0.85) {
+            if (print  && efficiency0 > 0.85) {
                 std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
             }
             co_return std::make_tuple(speedup0, efficiency0);

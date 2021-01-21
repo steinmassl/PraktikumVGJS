@@ -7,9 +7,6 @@
     <ClCompile Include="PraktikumVGJS\mctsCoro.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PraktikumVGJS\mctsFunc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PraktikumVGJS\work.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -20,6 +17,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PraktikumVGJS\lockfreeQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PraktikumVGJS\mcts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

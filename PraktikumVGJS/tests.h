@@ -14,11 +14,7 @@ namespace mandelbrot {
 	Coro<> test();
 }
 
-namespace mctsFunc {
-	void test();
-}
-
-namespace mctsCoro {
+namespace mcts {
 	Coro<> test();
 }
 
