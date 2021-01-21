@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <chrono>
+#include <math.h>
 
 #include "tests.h"
 
@@ -36,7 +37,7 @@ namespace work {
 
         while (duration.count() < micro) {
             for (int i = 0; i < 10; ++i) {
-                counter += counter;
+                counter = counter + counter;
                 root = sqrt((float)counter);
             }
             duration = duration_cast<microseconds>(high_resolution_clock::now() - start);

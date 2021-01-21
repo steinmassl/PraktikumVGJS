@@ -5,7 +5,7 @@ project(PraktikumVGJS)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_subdirectory(external/benchmark)
+# add_subdirectory(external/benchmark)
 
 # Find gcc's built-in atomic shared library (libatomic.so)
 FIND_LIBRARY(GCCLIBATOMIC_LIBRARY NAMES atomic atomic.so.1 libatomic.so.1
@@ -35,17 +35,17 @@ ENDIF ()
 
 add_compile_options(-fcoroutines
                     -fconcepts
+                    
                     )
 
 add_executable( main
                 PraktikumVGJS/main.cpp
-                PraktikumVGJS/workFunc.cpp
-                PraktikumVGJS/workCoro.cpp
-                PraktikumVGJS/mandelbrotFunc.cpp
-                PraktikumVGJS/mandelbrotCoro.cpp
-                PraktikumVGJS/mctsFunc.cpp
-                PraktikumVGJS/mctsCoro.cpp
-                PraktikumVGJS/lockfreeQueueTest.cpp
+                PraktikumVGJS/work.cpp
+                PraktikumVGJS/mandelbrot.cpp
+                PraktikumVGJS/mcts.cpp
+                PraktikumVGJS/lockfreeQueue.cpp
+                PraktikumVGJS/test.cpp
+                
                 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -53,9 +53,9 @@ find_package(Threads REQUIRED)
 
 target_link_libraries(main PRIVATE Threads::Threads
                            PRIVATE ${GCCLIBATOMIC_LIBRARY}
-                           PRIVATE benchmark::benchmark
-                           PRIVATE benchmark::benchmark_main
+                           #PRIVATE benchmark::benchmark
+                           #PRIVATE benchmark::benchmark_main
                            )
 
-target_include_directories(main PRIVATE external/benchmark/include/benchmark)
+#target_include_directories(main PRIVATE external/benchmark/include/benchmark)
 

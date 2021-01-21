@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstring>
 
 // Tic Tac Toe game to test MCTS
 class Game {

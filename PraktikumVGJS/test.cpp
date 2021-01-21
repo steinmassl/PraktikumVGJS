@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <numeric>
+#include <math.h>
 
 #include "vgjs.h"
 
