@@ -311,7 +311,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires !std::is_void_v<T>
+        requires !(std::is_void_v<T>)
         decltype(auto) get_val(Coro<T>& t) {
             return std::make_tuple(t.get());
         }
@@ -324,7 +324,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires !std::is_void_v<T>
+        requires !(std::is_void_v<T>)
         decltype(auto) get_val( std::pmr::vector<Coro<T>>& vec) {
             n_pmr::vector<T> ret;
             ret.reserve(vec.size());
@@ -566,7 +566,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !std::is_integral_v<U>
+        requires !(std::is_integral_v<U>)
         awaitable_tuple<T, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
 
         template<typename... Ts>
@@ -797,7 +797,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !std::is_integral_v<U>
+        requires !(std::is_integral_v<U>)
         awaitable_tuple<void, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
 
         template<typename... Ts>
