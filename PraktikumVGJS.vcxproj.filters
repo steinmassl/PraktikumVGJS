@@ -4,9 +4,6 @@
     <ClCompile Include="PraktikumVGJS\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PraktikumVGJS\mctsCoro.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PraktikumVGJS\work.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

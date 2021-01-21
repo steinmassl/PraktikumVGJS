@@ -1,34 +1,33 @@
 #pragma once
 
 #include <iostream>
-#include <cstring>
 #include <vector>
 
 // Tic Tac Toe game to test MCTS
 class Game {
 public:
 	static constexpr uint32_t DEFAULT_BOARD_SIZE = 5;			// Board Dimensions
-	static constexpr int32_t IN_PROGRESS = -1;
+	static constexpr int32_t  IN_PROGRESS = -1;
 	static constexpr uint32_t DRAW = 0;
 	static constexpr uint32_t P1 = 1;
 	static constexpr uint32_t P2 = 2;
 
-	short game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};			// Initialize the game board with zeroes
-	short num_empty_positions = DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE;
+	uint16_t game_values[DEFAULT_BOARD_SIZE][DEFAULT_BOARD_SIZE] = {};			// Initialize the game board with zeroes
+	uint16_t num_empty_positions = DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE;
 
 	// Board Position
 	struct Pos {
-		short first = 0;
-		short second = 0;
+		uint16_t first = 0;
+		uint16_t second = 0;
 
 		Pos() {}
 
-		Pos(short first, short second) : first(first), second(second) {}
+		Pos(uint16_t first, uint16_t second) : first(first), second(second) {}
 	};
 
 	// Compare two games - necessary for std::unordered_map
 	bool operator==(const Game& other) const {
-		return !std::memcmp(game_values, other.game_values, sizeof(short) * DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE);
+		return !std::memcmp(game_values, other.game_values, sizeof(uint16_t) * DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE);
 	}
 
 	// Put player number into selected field marking it for this player

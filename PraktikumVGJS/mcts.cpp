@@ -1,29 +1,29 @@
 #include <iostream>
 #include <iomanip>
-#include <stdlib.h>
-#include <functional>
 #include <string>
-#include <algorithm>
 #include <chrono>
-#include <numeric>
+#include <functional>
 
-#include "tests.h"
 #include "mctsStructs.h"
+#include "tests.h"
+
 
 using namespace std::chrono;
 
 namespace mcts {
 
-	using namespace vgjs;
+	const int num_blocks = 50000;
+	const int block_size = 1 << 10;
 
-	auto				g_global_mem = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = 10000, .largest_required_pool_block = 1 << 10 }, n_pmr::new_delete_resource());
+	auto				g_global_mem = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = num_blocks, .largest_required_pool_block = block_size }, n_pmr::new_delete_resource());
 
-	auto				g_global_mem_f = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = 10000, .largest_required_pool_block = 1 << 10 }, n_pmr::new_delete_resource());
-	thread_local auto	g_local_mem_f = n_pmr::unsynchronized_pool_resource({ .max_blocks_per_chunk = 10000, .largest_required_pool_block = 1 << 10 }, n_pmr::new_delete_resource());
+	auto				g_global_mem_f = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = num_blocks, .largest_required_pool_block = block_size }, n_pmr::new_delete_resource());
+	thread_local auto	g_local_mem_f = n_pmr::unsynchronized_pool_resource({ .max_blocks_per_chunk = num_blocks, .largest_required_pool_block = block_size }, n_pmr::new_delete_resource());
 
-	auto				g_global_mem_c = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = 10000, .largest_required_pool_block = 1 << 10 }, n_pmr::new_delete_resource());
-	thread_local auto	g_local_mem_c = n_pmr::unsynchronized_pool_resource({ .max_blocks_per_chunk = 10000, .largest_required_pool_block = 1 << 10 }, n_pmr::new_delete_resource());
+	auto				g_global_mem_c = n_pmr::synchronized_pool_resource({ .max_blocks_per_chunk = num_blocks, .largest_required_pool_block = block_size }, n_pmr::new_delete_resource());
+	thread_local auto	g_local_mem_c = n_pmr::unsynchronized_pool_resource({ .max_blocks_per_chunk = num_blocks, .largest_required_pool_block = block_size }, n_pmr::new_delete_resource());
 
+	thread_local auto	g_local_mem_m = n_pmr::monotonic_buffer_resource(1 << 20, n_pmr::new_delete_resource());
 
 	// Monte Carlo Tree Search algorithm
 	class MonteCarloTreeSearch {
@@ -148,12 +148,7 @@ namespace mcts {
 			//std::cout << max_count << " trees voted for this move" << std::endl;
 			current_game = res;
 		}
-		/*
-		Coro<> majority_vote_coro(uint32_t num_trees) {
-			majority_vote_function(num_trees);
-			co_return;
-		}
-		*/
+
 		// Find best move by creating multiple trees in parallel and merging all results
 		void find_next_move_root_parallel_function(uint32_t player, uint32_t num_trees) {
 			for (uint32_t i = 0; i < num_trees; i++) {
@@ -291,36 +286,21 @@ namespace mcts {
 	Coro<> test() {
 
 		co_await performance_driver<false, Function, std::function<void(void)>>("std::function calls (w / o allocate)");
-		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
-		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
-		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
+		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
+		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
+		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
+		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
+		g_local_mem_m.release();
 
 		co_await performance_driver<false, Coro<>, Coro<>>("Coro<> calls (w / o allocate)");
-		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
-		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_f);
-		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_f);
+		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
+		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
+		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
+		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
 
 		//int win_status = mcts.getCurrentGame().checkStatus();
 		//std::cout << "Status: " << win_status << std::endl;
-		//std::cout << "Ending MCTS Test" << std::endl;
 
 		co_return;
 	}
-
-
-	/*
-	void loopForEachRound(uint32_t n) {
-		//std::cout << "Player " << player << std::endl;
-		schedule([]() {mcts.findNextMoveWithRootParallelization(player); });			// Find move using MCTS with root parallelization
-
-		continuation([=]() {
-			//mcts.getCurrentGame().print();		// Show Board
-			//std::cout << "Number of moves: " << n + 1 << std::endl << std::endl;
-			if (mcts.getCurrentGame().checkStatus() == -1 && n < total_moves) {			// Game is not over
-				player = 3 - player;													// Toggle player
-				loopForEachRound(n + 1);												// Next round
-			}
-		});
-	}
-	*/
 }

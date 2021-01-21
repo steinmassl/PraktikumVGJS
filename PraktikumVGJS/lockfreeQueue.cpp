@@ -1,21 +1,19 @@
 #include "tests.h"
 
 namespace lock_free {
-    /*
-    // Tagged pointer
-	template<typename JOB>
-    struct pointer_t {
-        node_t<JOB>* ptr = nullptr;
-        uint32_t count = 0;
 
-        pointer_t() {}
-        pointer_t(node_t<JOB>* node_ptr, uint32_t count = 0) : ptr(node_ptr), count(count) {}
+    // Add this to thread_task function for initialization
+    void thread_task() {
+        /*
+        JobQueue_base::m_thread_index = threadIndex;        // Set threadindex for HP
 
-        bool operator== (const pointer_t<JOB>& other) const {
-            return (ptr == other.ptr && count == other.count);
-        }
-    };
-    */
+        // Correctly initialize HP in all JobQueues
+        for (auto& queue : m_global_queues) queue.initHP();
+        for (auto& queue : m_local_queues) queue.initHP();
+        m_recycle.initHP();
+        m_delete.initHP();
+        */
+    }
 
     class JobQueue_base {
         friend JobSystem;
@@ -49,7 +47,7 @@ namespace lock_free {
         std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry
         std::atomic<node_t<JOB>*>   	m_tail;	        //points to last entry
         std::atomic<int32_t>	        m_size{ 0 };	//number of entries in the queue
-        static inline node_t<JOB>* m_HP[N]{};      // All Hazard pointers (read all, write only to 2 thread HP)
+        static inline node_t<JOB>*      m_HP[N]{};      // All Hazard pointers (read all, write only to 2 thread HP)
 
         // Per thread private variables
         static inline thread_local node_t<JOB>** m_hp0{ &m_HP[K * m_thread_index.value] };     // Thread hazard pointer

@@ -1,7 +1,5 @@
 main
-perf.data*
 x64/
-PraktikumVGJSTest/x64/
 .vs/PraktikumVGJS/v16/ipch
 .vs/PraktikumVGJS/v16/Browse.VC.db
 .vs/PraktikumVGJS/v16/Solution.VC.db
@@ -10,16 +8,12 @@ PraktikumVGJSTest/x64/
 .vs/VSWorkspaceState.json
 .vs/slnx.sqlite
 log.json
-mandelbrot*.ppm
+mandelbrot.ppm
 build/
-external/
 CMakeFiles/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
-PraktikumVGJS/results/bench*.cfg.*
-PraktikumVGJS/results/raw*.txt
-packages/
 
 /.vs/PraktikumVGJS/v16/Browse.VC.db-shm
 /.vs/PraktikumVGJS/v16/Browse.VC.db-wal

@@ -1,13 +1,11 @@
 #pragma once
 
 #include "vgjs.h"
-//#include "benchmark.h"
 
 using namespace vgjs;
 
 namespace work {
 	Coro<> test();
-	//Coro<> benchmarkWithFixedTime(const uint32_t, const uint32_t, const uint32_t);
 }
 
 namespace mandelbrot {
@@ -25,5 +23,3 @@ namespace lock_free {
 namespace test {
 	Coro<> start_test();
 }
-
-//void BM_Work(benchmark::State&);

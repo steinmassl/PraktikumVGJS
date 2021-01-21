@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PraktikumVGJS", "PraktikumVGJS.vcxproj", "{7C9354C9-25BF-46F2-B234-58B8E3A8D738}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PraktikumVGJSTest", "PraktikumVGJSTest\PraktikumVGJSTest.vcxproj", "{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -23,14 +21,6 @@ Global
 		{7C9354C9-25BF-46F2-B234-58B8E3A8D738}.Release|x64.Build.0 = Release|x64
 		{7C9354C9-25BF-46F2-B234-58B8E3A8D738}.Release|x86.ActiveCfg = Release|Win32
 		{7C9354C9-25BF-46F2-B234-58B8E3A8D738}.Release|x86.Build.0 = Release|Win32
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Debug|x64.ActiveCfg = Debug|x64
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Debug|x64.Build.0 = Debug|x64
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Debug|x86.ActiveCfg = Debug|Win32
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Debug|x86.Build.0 = Debug|Win32
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Release|x64.ActiveCfg = Release|x64
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Release|x64.Build.0 = Release|x64
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Release|x86.ActiveCfg = Release|Win32
-		{1F3DE29D-82FA-48F5-A7DC-2BB4D6AAC554}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

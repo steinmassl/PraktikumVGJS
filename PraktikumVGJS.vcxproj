@@ -22,7 +22,6 @@
     <ClCompile Include="PraktikumVGJS\lockfreeQueue.cpp" />
     <ClCompile Include="PraktikumVGJS\main.cpp" />
     <ClCompile Include="PraktikumVGJS\mandelbrot.cpp" />
-    <ClCompile Include="PraktikumVGJS\mctsCoro.cpp" />
     <ClCompile Include="PraktikumVGJS\mcts.cpp" />
     <ClCompile Include="PraktikumVGJS\test.cpp" />
     <ClCompile Include="PraktikumVGJS\work.cpp" />
