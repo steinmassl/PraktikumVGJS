@@ -213,6 +213,8 @@ namespace mandelbrot {
 		
 		
 		//draw();		// Start drawing
+
+		vgjs::terminate();
 		co_return;
 	}
 

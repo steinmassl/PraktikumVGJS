@@ -89,7 +89,7 @@ namespace work {
         double speedup0 = (double)duration0.count() / (double)duration2.count();
         double efficiency0 = speedup0 / js.get_thread_count().value;
         if (wrtfunc) {
-            if (print && efficiency0 > 0.85) {
+            if (print /* && efficiency0 > 0.85 */) {
                 std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
             }
             co_return std::make_tuple(speedup0, efficiency0);
@@ -115,7 +115,7 @@ namespace work {
         for (int us = st; us <= mt; us += mdt) {
             int loops = (us == 0 ? num : (runtime / us));
             auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, loops, us, mr);
-            if (eff > 0.95) co_return;
+            if (eff > 0.95 && us >= 10) co_return;
             if (us >= 15) mdt = dt2;
             if (us >= 20) mdt = dt3;
             if (us >= 50) mdt = dt4;
@@ -138,6 +138,8 @@ namespace work {
         co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
         co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
         co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
+
+        vgjs::terminate();
 
         co_return;
     }

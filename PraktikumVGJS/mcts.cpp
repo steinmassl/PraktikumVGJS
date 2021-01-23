@@ -300,7 +300,8 @@ namespace mcts {
 
 		//int win_status = mcts.getCurrentGame().checkStatus();
 		//std::cout << "Status: " << win_status << std::endl;
-
+		
+		vgjs::terminate();
 		co_return;
 	}
 }

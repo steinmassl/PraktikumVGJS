@@ -6,6 +6,7 @@
 #include "vgjs.h"
 #include "tests.h"
 
+/*
 Coro<> startJobSystemBenchmarks(const uint32_t num_threads) {
 
 	co_await work::test();
@@ -18,7 +19,7 @@ Coro<> startJobSystemBenchmarks(const uint32_t num_threads) {
 	vgjs::terminate();
 	co_return;
 }
-
+*/
 int main(int argc, char* argv[]) {
 
 	uint32_t num = argc > 1 ? std::stoi(argv[1]) : std::thread::hardware_concurrency();
@@ -27,7 +28,10 @@ int main(int argc, char* argv[]) {
 	//enable_logging();
 
 	// Benchmark JobSystem Tests
-	schedule(startJobSystemBenchmarks(num));
+	//schedule(startJobSystemBenchmarks(num));
+	schedule(work::test());
+	//schedule(mandelbrot::test());
+	//schedule(mcts::test());
 
 	// Run test.cpp from Prof. Helmut Hlavacs 
 	//schedule(test::start_test());
