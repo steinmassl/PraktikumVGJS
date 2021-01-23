@@ -38,10 +38,10 @@ namespace lock_free {
         friend JobSystem;
 
         // Node holding pointer to job and next
-        template<typename JOB>
+        template<typename JOBT>
         struct node_t {
-            JOB* job{ nullptr };
-            std::atomic<node_t<JOB>*> next{ nullptr };
+            JOBT* job{ nullptr };
+            std::atomic<node_t<JOBT>*> next{ nullptr };
         };
 
         std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry

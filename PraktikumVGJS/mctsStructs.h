@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include "mctsGame.h"
 
 //A struct carrying information relevant to the MCTS algorithm - state of the game at a specific point
