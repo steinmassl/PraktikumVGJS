@@ -23,3 +23,7 @@ namespace lock_free {
 namespace test {
 	Coro<> start_test();
 }
+
+namespace mjs {
+	void test(const uint32_t);
+}

@@ -24,19 +24,23 @@ int main(int argc, char* argv[]) {
 
 	uint32_t num = argc > 1 ? std::stoi(argv[1]) : std::thread::hardware_concurrency();
 
-	JobSystem::instance(thread_count(num));
+	// Test minimal JobSystem
+	mjs::test(num);
+
+	//JobSystem::instance(thread_count(num));
 	//enable_logging();
 
 	// Benchmark JobSystem Tests
 	//schedule(startJobSystemBenchmarks(num));
-	schedule(work::test());
+
+	//schedule(work::test());
 	//schedule(mandelbrot::test());
 	//schedule(mcts::test());
 
 	// Run test.cpp from Prof. Helmut Hlavacs 
 	//schedule(test::start_test());
 
-	wait_for_termination();
+	//wait_for_termination();
 	//char in;
 	//std::cin >> in;
 }

@@ -19,6 +19,9 @@
     <ClCompile Include="PraktikumVGJS\mcts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PraktikumVGJS\threadpool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PraktikumVGJS\mctsGame.h">
@@ -43,6 +46,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PraktikumVGJS\tests.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\threadpool.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
