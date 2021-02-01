@@ -18,12 +18,13 @@ namespace lock_free {
     class JobQueue_base {
         friend JobSystem;
     protected:
-        static constexpr unsigned int K{ 2 };       // Hazard Pointer per thread
-        static constexpr unsigned int P{ 32 };      // Maximum number of threads - fixed value until better solution
-        static constexpr unsigned int N{ K * P };   // Total number of hazard pointer
-        static constexpr unsigned int R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
+        static constexpr uint32_t K{ 2 };       // Hazard Pointer per thread
+        static constexpr uint32_t P{ 16 };      // Maximum number of threads - fixed value until better solution
+        static constexpr uint32_t N{ K * P };   // Total number of hazard pointer
+        static constexpr uint32_t R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
+        static constexpr uint32_t FREELIST_SIZE{ 1 << 20 };
 
-        static inline thread_local thread_index m_thread_index{ 0 };  // Initialize with 0 until threads are ready and call initHP()
+        static inline thread_local thread_index_t m_thread_index{ 0 };  // Initialize with 0 until threads are ready and call initHP()
     };
 
     /**
@@ -50,14 +51,16 @@ namespace lock_free {
         static inline node_t<JOB>*      m_HP[N]{};      // All Hazard pointers (read all, write only to 2 thread HP)
 
         // Per thread private variables
-        static inline thread_local node_t<JOB>** m_hp0{ &m_HP[K * m_thread_index.value] };     // Thread hazard pointer
-        static inline thread_local node_t<JOB>** m_hp1{ &m_HP[K * m_thread_index.value + 1] }; // FIFO Queue requires 2 HP 
-        static inline thread_local node_t<JOB>* m_rlist[R]{};       // List of retired nodes
-        static inline thread_local unsigned int m_rcount{ 0 };      // Number of retired nodes
+        static inline thread_local node_t<JOB>**    m_hp0{ &m_HP[K * m_thread_index.value] };     // Thread hazard pointer
+        static inline thread_local node_t<JOB>**    m_hp1{ &m_HP[K * m_thread_index.value + 1] }; // FIFO Queue requires 2 HP 
+        static inline thread_local node_t<JOB>*     m_rlist[R]{};       // List of retired nodes
+        static inline thread_local uint32_t         m_rcount{ 0 };      // Number of retired nodes
+        static inline thread_local node_t<JOB>*     m_freelist[FREELIST_SIZE]{};        // List of nodes that can be re-used
+        static inline thread_local uint32_t         m_freecount{ 0 };                   // Number of reusable nodes
 
         // Free nodes no longer in use by any thread
         void scan() {
-            unsigned int i, pcount{ 0 }, next_rcount{ 0 };
+            uint32_t i, pcount{ 0 }, next_rcount{ 0 };
             node_t<JOB>* hptr{ nullptr };
             node_t<JOB>* plist[N]{};        // Current non-null hazard pointers
             node_t<JOB>* next_rlist[N]{};   // Temporary list for new rlist
@@ -77,8 +80,18 @@ namespace lock_free {
             for (i = 0; i < R; ++i) {
                 if (std::binary_search(plist, plist + pcount, m_rlist[i]))
                     next_rlist[next_rcount++] = m_rlist[i];
-                else
-                    delete m_rlist[i];    // Alternatively recycle into free_list
+                else {
+                    //delete m_rlist[i];        // Simply delete when no longer in use
+                    
+                    if (m_freecount < FREELIST_SIZE) {      // Recycle into freelist when no longer in use
+                        m_freelist[m_freecount++] = m_rlist[i];
+                        //std::cout << "Recycling\n";
+                    }
+                    else {
+                        delete m_rlist[i];      // Delete if freelist is full
+                        std::cout << "freelist is full\n";
+                    }
+                }
             }
             // Stage 4: Form new array of retired nodes
             for (i = 0; i < next_rcount; ++i)
@@ -140,7 +153,18 @@ namespace lock_free {
         * \param[in] job_to_push The job to be pushed into the queue.
         */
         void push(JOB* job_to_push) {
-            node_t<JOB>* new_node{ new node_t<JOB>() };     // Allocate new node. Alternatively use existing node from free_list
+            //node_t<JOB>* new_node{ new node_t<JOB>() };     // Allocate new node. Alternatively use existing node from freelist
+            
+            node_t<JOB>* new_node{ nullptr };
+            if (m_freecount > 0) {                  // Re-use node from freelist
+                new_node = m_freelist[--m_freecount];
+                new_node->next = nullptr;           // Clear pointer to successor    
+                m_freelist[m_freecount] = nullptr;
+                std::cout << "used recycled node\n";
+            }
+            else
+                new_node = new node_t<JOB>();       // Allocate new node when freelist is empty
+            
             new_node->job = job_to_push;                    // Copy job into node - next pointer of node already nullptr
             node_t<JOB>* tail;
             while (true) {                                                          // Try until job pushed into queue
@@ -150,7 +174,7 @@ namespace lock_free {
                 node_t<JOB>* next{ tail->next.load(std::memory_order_acquire) };    // Read next node of tail
                 if (tail != m_tail.load(std::memory_order_acquire)) continue;       // Is Queue tail still consistent? if not, try again
                 if (next != nullptr) {                                              // Was tail pointing to the last node?
-                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail was not last node, swing tail to next node
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail was not last node, swing tail to next node - test with compare_exchange_strong as well
                     continue;                                                               // Try to push again
                 }
                 if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;     // Try to link new node to end of list,
@@ -194,28 +218,29 @@ namespace lock_free {
         }
     };
 
-    JobQueue<Job> queue;
+    lock_free::JobQueue<Job> queue;
     void test_push() {
-        for (int j = 0; j < 1000; j++) {
+        for (int j = 0; j < 100000; j++) {
             Job* job = new Job(n_pmr::new_delete_resource());
             queue.push(job);
         }
     }
     void test_pop() {
-        for (int j = 0; j < 2000; j++) {
+        for (int j = 0; j < 200000; j++) {
             Job* job = nullptr;
             job = queue.pop();
-            std::cout << "Pop: " << (bool) job << std::endl;
+            //std::cout << "Pop: " << (bool) job << std::endl;
         }
     }
 
-	Coro<> test() {
-		for (int i = 0; i < 16; i++) {
-            schedule([]() { test_push(); });
-		}
-		for (int i = 0; i < 16; i++) {
-            schedule([]() { test_pop(); });
-		}
-        co_return;
+	void test() {
+		for (int i = 0; i < 16; i++) 
+            schedule( []() { test_push(); });
+		for (int i = 0; i < 16; i++) 
+            schedule( []() { test_pop(); });
+        for (int i = 0; i < 16; i++)
+            schedule( []() { test_push(); });
+
+        continuation([]() {vgjs::terminate(); });        
 	}
 }

@@ -17,7 +17,7 @@ namespace mcts {
 }
 
 namespace lock_free {
-	Coro<> test();
+	void test();
 }
 
 namespace test {

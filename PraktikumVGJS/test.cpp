@@ -6,9 +6,9 @@
 #include <algorithm>
 #include <chrono>
 #include <numeric>
-#include <math.h>
 
-#include "vgjs.h"
+#include "VEGameJobSystem.h"
+#include "VECoro.h"
 
 using namespace std::chrono;
 
@@ -121,11 +121,11 @@ namespace test {
 		num = 1; // std::max(num, 1);
 		std::pmr::vector<Function> perfv{};
 		for (int i = 0; i < num; ++i) {
-			perfv.push_back(Function{ []() {func_perf(10000); }, thread_index{i} });
+			perfv.push_back(Function{ []() {func_perf(10000); }, thread_index_t{i} });
 		}
 		std::pmr::vector<Function> perfv2{};
 		for (int i = 0; i < js.get_thread_count().value; ++i) {
-			perfv2.push_back(Function{ []() {func_perf(10000); }, thread_index{i} });
+			perfv2.push_back(Function{ []() {func_perf(10000); }, thread_index_t{i} });
 		}
 
 		do {		
@@ -189,7 +189,7 @@ namespace test {
 				for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, mr, micro));
 			}
 		}
-		co_await perfv2;
+		co_await std::move(perfv2);
 		auto duration2 = duration_cast<microseconds>(high_resolution_clock::now() - start2);
 		//std::cout << "Time for " << num << " calls on " << js.get_thread_count().value << " threads " << duration2.count() << " us" << std::endl;
 
@@ -251,7 +251,7 @@ namespace test {
 		auto& js = JobSystem::instance();
 
 		std::cout << "\n\nTest utilization drop\n";
-		co_await test_utilization_drop(10);
+		co_await test_utilization_drop(4);
 
 		std::cout << "Unit Tests\n";
 
@@ -423,11 +423,11 @@ namespace test {
 
 		//changing threads
 
-		co_await thread_index{0};
+		co_await thread_index_t{0};
 		TESTRESULT(++number, "Change to thread 0", , js.get_thread_index().value == 0, );
 
-		thread_count tc{js.get_thread_count()};
-		co_await thread_index{ tc.value - 1 };
+		thread_count_t tc{js.get_thread_count()};
+		co_await thread_index_t{ tc.value - 1 };
 		TESTRESULT(++number, "Change to last thread", , js.get_thread_index().value == tc.value - 1, );
 
 		//scheduling tagged jobs
@@ -443,14 +443,14 @@ namespace test {
 		tagvc1.emplace_back(coro_void(std::allocator_arg, &g_global_mem, &counter));
 		tagvc1.emplace_back(coro_void(std::allocator_arg, &g_global_mem, &counter));
 
-		co_await parallel(tag{ 1 }, tagvf);
-		co_await parallel(tag{ 2 }, tagvF);
-		co_await parallel(tag{ 3 }, tagvci, tagvc1);
+		co_await parallel(tag_t{ 1 }, tagvf);
+		co_await parallel(tag_t{ 2 }, tagvF);
+		co_await parallel(tag_t{ 3 }, tagvci, tagvc1);
 
-		TESTRESULT(++number, "Tagged jobs 1", co_await tag{ 1 }, counter.load() == 2, );
-		TESTRESULT(++number, "Tagged jobs 2", co_await tag{ 2 }, counter.load() == 4, );
-		TESTRESULT(++number, "Tagged jobs 3", co_await tag{ 3 }, counter.load() == 10, counter = 0);
-
+		TESTRESULT(++number, "Tagged jobs 1", co_await tag_t{ 1 }, counter.load() == 2, );
+		TESTRESULT(++number, "Tagged jobs 2", co_await tag_t{ 2 }, counter.load() == 4, );
+		TESTRESULT(++number, "Tagged jobs 3", co_await tag_t{ 3 }, counter.load() == 10, counter = 0);
+		
 
 		std::cout << "\n\nPerformance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95\n";
 
@@ -469,9 +469,47 @@ namespace test {
 
 
 		std::cout << "\n\nTest utilization drop\n";
-		co_await test_utilization_drop(10);
+		co_await test_utilization_drop(4);
 
-		vgjs::terminate();
 		co_return;
 	}
 }
+
+/*
+namespace coro {
+	void test();
+}
+
+namespace func {
+	void test();
+}
+
+namespace mixed {
+	void test();
+}
+
+namespace docu {
+	void test(int);
+}
+
+namespace tags {
+	void test();
+}
+
+namespace examples {
+	void run_examples(int i) {
+		std::cout << "Loop " << i << "\n";
+		vgjs::schedule(coro::test);
+		vgjs::schedule(func::test);
+		vgjs::schedule(mixed::test);
+		vgjs::schedule(tags::test);
+
+		if (i <= 1) {
+			vgjs::continuation( vgjs::terminate );
+		}
+		else {
+			vgjs::continuation([=]() { run_examples(i - 1); });
+		}
+	}
+}
+*/

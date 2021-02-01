@@ -48,20 +48,12 @@ namespace vgjs {
     template<typename T> class Coro;    //main promise class for all Ts
     template<> class Coro<void>;        //specializiation for T = void
 
-    //---------------------------------------------------------------------------------------------------
-
-    //test whether a template parameter T is a std::pmr::vector
-    template<typename>
-    struct is_pmr_vector : std::false_type {};
-
-    template<typename T>
-    struct is_pmr_vector<n_pmr::vector<T>> : std::true_type {};
-
+    
     //---------------------------------------------------------------------------------------------------
     //schedule functions for coroutines
 
     template<typename T>
-    concept CORO = std::is_base_of_v<Coro_base, typename std::decay<T>::type >; //resolve only for coroutines
+    concept CORO = std::is_base_of_v<Coro_base, std::decay_t<T> >; //resolve only for coroutines
 
     /**
     * \brief Schedule a Coro into the job system.
@@ -72,7 +64,7 @@ namespace vgjs {
     */
     template<typename T>
     requires CORO<T>   
-    void schedule( T&& coro, tag tg = tag{}, Job_base* parent = current_job(), int32_t children = 1) noexcept {
+    uint32_t schedule( T&& coro, tag_t tg = tag_t{}, Job_base* parent = current_job(), int32_t children = 1) noexcept {
         auto& js = JobSystem::instance();
 
         auto promise = coro.promise();
@@ -87,7 +79,8 @@ namespace vgjs {
             promise->set_self_destruct(true);
             promise->m_parent = nullptr;
         }
-        js.schedule( promise, tg );      //schedule the promise as job
+        js.schedule_job( promise, tg );      //schedule the promise as job
+        return 1;
     };
 
 
@@ -125,10 +118,9 @@ namespace vgjs {
     //---------------------------------------------------------------------------------------------------
     //Awaitables
 
-
     /**
     * \brief This can be called as co_await parameter. It constructs a tuple
-    * holding only references to the arguments. The arguments are passed into a 
+    * holding only references to the arguments. The arguments are passed into a
     * function get_ref, which SFINAEs to either a lambda version or for any other parameter.
     *
     * \param[in] args Arguments to be put into tuple
@@ -136,9 +128,10 @@ namespace vgjs {
     *
     */
     template<typename... Ts>
-    decltype(auto) parallel(Ts&& ... args) {
-        return std::forward_as_tuple(args...);
+    inline decltype(auto) parallel(Ts&&... args) {
+        return std::tuple<Ts&&...>(std::forward<Ts>(args)...);
     }
+
 
     using suspend_always = n_exp::suspend_always;
 
@@ -150,7 +143,7 @@ namespace vgjs {
     */
     template<typename PT>
     struct awaitable_resume_on : suspend_always {
-        thread_index m_thread_index; //the thread index to use
+        thread_index_t m_thread_index; //the thread index to use
 
         /**
         * \brief Test whether the job is already on the right thread.
@@ -165,14 +158,14 @@ namespace vgjs {
         */
         void await_suspend(n_exp::coroutine_handle<Coro_promise<PT>> h) noexcept {
             h.promise().m_thread_index = m_thread_index;
-            JobSystem::instance().schedule(&h.promise());
+            JobSystem::instance().schedule_job(&h.promise());
         }
 
         /**
         * \brief Awaiter constructor
         * \parameter[in] thread_index Number of the thread to migrate to
         */
-        awaitable_resume_on(thread_index index) noexcept : m_thread_index(index) {};
+        awaitable_resume_on(thread_index_t index) noexcept : m_thread_index(index) {};
     };
 
 
@@ -181,7 +174,7 @@ namespace vgjs {
     */
     template<typename PT>
     struct awaitable_tag : suspend_always {
-        tag       m_tag;            //the tag to schedule
+        tag_t     m_tag;            //the tag to schedule
         uint32_t  m_number = 0;     //Number of scheduled jobs
 
         /**
@@ -198,7 +191,7 @@ namespace vgjs {
         * \returns true of the coro should be suspended, else false.
         */
         bool await_suspend(n_exp::coroutine_handle<Coro_promise<PT>> h) noexcept {
-            m_number = JobSystem::instance().schedule(m_tag);
+            m_number = JobSystem::instance().schedule_tag(m_tag);
             return m_number > 0;     //if jobs were scheduled - await them
         }
 
@@ -214,7 +207,7 @@ namespace vgjs {
         * \brief Awaiter constructor
         * \parameter[in] tg The tag to schedule
         */
-        awaitable_tag( tag tg) noexcept : m_tag(tg) {};
+        awaitable_tag( tag_t tg) noexcept : m_tag(tg) {};
     };
 
 
@@ -226,7 +219,7 @@ namespace vgjs {
     */
     template<typename PT, typename... Ts>
     struct awaitable_tuple : suspend_always {
-        tag                 m_tag;          ///<The tag to schedule to
+        tag_t               m_tag;          ///<The tag to schedule to
         std::tuple<Ts&&...> m_tuple;          ///<vector with all children to start
         std::size_t         m_number;         ///<total number of all new children to schedule
 
@@ -236,10 +229,10 @@ namespace vgjs {
         */
         template<typename U>
         size_t size(U& children) {
-            if constexpr (is_pmr_vector< typename std::decay<U>::type >::value) { //if this is a vector
+            if constexpr (is_pmr_vector< std::decay_t<U> >::value) { //if this is a vector
                 return children.size();
             }
-            if constexpr (std::is_same_v<typename std::decay<U>::type, tag>) { //if this is a tag
+            if constexpr (std::is_same_v<std::decay_t<U>, tag_t>) { //if this is a tag
                 m_tag = children;
                 return 0;
             }
@@ -271,18 +264,35 @@ namespace vgjs {
         *
         */
         bool await_suspend(n_exp::coroutine_handle<Coro_promise<PT>> h) noexcept {
-            auto g = [&, this]<typename T>(T && children) {
-                if constexpr (std::is_same_v<typename std::decay<T>::type, tag> ) { //never schedule tags here
+            auto g = [&, this]<std::size_t Idx>() {
+
+                using tt = decltype(m_tuple);
+                using T = decltype(std::get<Idx>(std::forward<tt>(m_tuple)));
+                decltype(auto) children = std::forward<T>(std::get<Idx>(std::forward<tt>(m_tuple)));
+
+                if constexpr (std::is_same_v<std::decay_t<T>, tag_t> ) { //never schedule tags here
                     return;
                 }
                 else {
+                    /*if constexpr (std::is_reference_v<T>) {
+                        if constexpr (std::is_rvalue_reference_v<T>) {
+                            int i = 1;
+                        }
+                        else {
+                            int i = 2;
+                        }
+                    }
+                    else {
+                        int i = 3;
+                    }*/
+
                     schedule(std::forward<T>(children), m_tag, &h.promise(), (int)m_number);   //in first call the number of children is the total number of all jobs
                     m_number = 0;                                               //after this always 0
                 }
             };
 
             auto f = [&, this]<std::size_t... Idx>(std::index_sequence<Idx...>) {
-                (g( std::forward<decltype(std::get<Idx>(m_tuple))>(std::get<Idx>(m_tuple)) ), ...); //called for every tuple element
+                ( g.template operator() <Idx> (), ...); //called for every tuple element
             };
 
             f(std::make_index_sequence<sizeof...(Ts)>{}); //call f and create an integer list going from 0 to sizeof(Ts)-1
@@ -311,7 +321,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires !(std::is_void_v<T>)
+        requires !std::is_void_v<T>
         decltype(auto) get_val(Coro<T>& t) {
             return std::make_tuple(t.get());
         }
@@ -324,7 +334,7 @@ namespace vgjs {
         *
         */
         template<typename T>
-        requires !(std::is_void_v<T>)
+        requires !std::is_void_v<T>
         decltype(auto) get_val( std::pmr::vector<Coro<T>>& vec) {
             n_pmr::vector<T> ret;
             ret.reserve(vec.size());
@@ -357,7 +367,7 @@ namespace vgjs {
         * \brief Awaiter constructor.
         * \parameter[in] tuple The tuple to schedule
         */
-        awaitable_tuple(std::tuple<Ts&&...>&& tuple) noexcept : m_tag{}, m_number{0}, m_tuple(std::forward<std::tuple<Ts&&...>>(tuple)) {};
+        awaitable_tuple(std::tuple<Ts&&...> tuple) noexcept : m_tag{}, m_number{0}, m_tuple(std::forward<std::tuple<Ts&&...>>(tuple)){};
     };
 
 
@@ -383,7 +393,7 @@ namespace vgjs {
                 else {  //parent is a coro
                     uint32_t num = promise.m_parent->m_children.fetch_sub(1);   //one less child
                     if (num == 1) {                                             //was it the last child?
-                        JobSystem::instance().schedule(promise.m_parent);      //if last reschedule the parent coro
+                        JobSystem::instance().schedule_job(promise.m_parent);      //if last reschedule the parent coro
                     }
                 }
             }
@@ -420,7 +430,7 @@ namespace vgjs {
                 else {
                     uint32_t num = parent->m_children.fetch_sub(1);        //one less child
                     if (num == 1) {                                             //was it the last child?
-                        JobSystem::instance().schedule(parent);      //if last reschedule the parent coro
+                        JobSystem::instance().schedule_job(parent);      //if last reschedule the parent coro
                     }
                 }
             }
@@ -566,25 +576,27 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !(std::is_integral_v<U>)
-        awaitable_tuple<T, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
+        awaitable_tuple<T, U> await_transform(U&& func) noexcept { return { std::tuple<U&&>(std::forward<U>(func)) }; };
 
         template<typename... Ts>
-        awaitable_tuple<T, Ts...> await_transform(std::tuple<Ts...>&& tuple) noexcept { return { std::forward<decltype(tuple)>(tuple) }; };
+        awaitable_tuple<T, Ts...> await_transform(std::tuple<Ts...>&& tuple) noexcept { return { std::forward<std::tuple<Ts...>>(tuple) }; };
+
+        template<typename... Ts>
+        awaitable_tuple<T, Ts...> await_transform(std::tuple<Ts...>& tuple) noexcept { return { std::forward<std::tuple<Ts...>>(tuple) }; };
 
         /**.
         * \brief Called by co_await to create an awaitable for migrating to another thread.
         * \param[in] thread_index The thread to migrate to.
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_resume_on<T> await_transform(thread_index index) noexcept { return { index }; };
+        awaitable_resume_on<T> await_transform(thread_index_t index) noexcept { return { index }; };
 
         /**.
         * \brief Called by co_await to create an awaitable for scheduling a tag
         * \param[in] tg The tag to schedule
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_tag<T> await_transform(tag tg) noexcept { return { tg }; };
+        awaitable_tag<T> await_transform(tag_t tg) noexcept { return { tg }; };
 
         /**
         * \brief Create the final awaiter. This awaiter makes sure that the parent is scheduled if there are no more children.
@@ -727,14 +739,13 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<T>&& operator() (thread_index index = thread_index{}, thread_type type = thread_type{}, thread_id id = thread_id{}) {
+        decltype(auto) operator() (thread_index_t index = thread_index_t{}, thread_type_t type = thread_type_t{}, thread_id_t id = thread_id_t{}) {
             m_promise->m_thread_index = index;
             m_promise->m_type = type;
             m_promise->m_id = id;
             return std::move(*this);
         }
     };
-
 
     //---------------------------------------------------------------------------------------------------
     //specializations for void
@@ -797,8 +808,7 @@ namespace vgjs {
         * \returns the awaitable for this parameter type of the co_await operator.
         */
         template<typename U>
-        requires !(std::is_integral_v<U>)
-        awaitable_tuple<void, U> await_transform(U&& func) noexcept { return { std::forward_as_tuple(std::forward<U>(func)) }; };
+        awaitable_tuple<void, U> await_transform(U&& func) noexcept { return { std::tuple<U&&>(std::forward<U>(func)) }; };
 
         template<typename... Ts>
         awaitable_tuple<void, Ts...> await_transform(std::tuple<Ts...>&& tuple) noexcept { return { std::forward<std::tuple<Ts...>>(tuple) }; };
@@ -811,14 +821,14 @@ namespace vgjs {
         * \param[in] thread_index The thread to migrate to.
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_resume_on<void> await_transform(thread_index index ) noexcept { return { index }; };
+        awaitable_resume_on<void> await_transform(thread_index_t index ) noexcept { return { index }; };
 
         /**.
         * \brief Called by co_await to create an awaitable for scheduling a tag
         * \param[in] tg The tag to schedule
         * \returns the awaitable for this parameter type of the co_await operator.
         */
-        awaitable_tag<void> await_transform(tag tg) noexcept { return { tg }; };
+        awaitable_tag<void> await_transform(tag_t tg) noexcept { return { tg }; };
 
         /**
         * \brief Create the final awaiter. This awaiter makes sure that the parent is scheduled if there are no more children.
@@ -892,7 +902,7 @@ namespace vgjs {
         * \param[in] id A unique ID of the call.
         * \returns a reference to this Coro so that it can be used with co_await.
         */
-        Coro<void>&& operator() (thread_index index = thread_index{}, thread_type type = thread_type{}, thread_id id = thread_id{}) {
+        decltype(auto) operator() (thread_index_t index = thread_index_t{}, thread_type_t type = thread_type_t{}, thread_id_t id = thread_id_t{}) {
             m_promise->m_thread_index = index;
             m_promise->m_type = type;
             m_promise->m_id = id;
@@ -955,7 +965,7 @@ namespace vgjs {
             else {  //parent is a coro
                 uint32_t num = parent->m_children.fetch_sub(1);   //one less child
                 if (num == 1) {                                   //was it the last child?
-                    JobSystem::instance().schedule(parent);       //if last reschedule the parent coro
+                    JobSystem::instance().schedule_job(parent);       //if last reschedule the parent coro
                 }
             }
         }
@@ -979,7 +989,7 @@ namespace vgjs {
             else {
                 uint32_t num = parent->m_children.fetch_sub(1);   //one less child
                 if (num == 1) {                                   //was it the last child?
-                    JobSystem::instance().schedule(parent);       //if last reschedule the parent coro
+                    JobSystem::instance().schedule_job(parent);       //if last reschedule the parent coro
                 }
             }
         }
