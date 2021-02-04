@@ -23,20 +23,20 @@
     <ClCompile Include="PraktikumVGJS\main.cpp" />
     <ClCompile Include="PraktikumVGJS\mandelbrot.cpp" />
     <ClCompile Include="PraktikumVGJS\mcts.cpp" />
-    <ClCompile Include="PraktikumVGJS\test.cpp" />
+    <ClCompile Include="PraktikumVGJS\performance.cpp" />
     <ClCompile Include="PraktikumVGJS\threadpool.cpp" />
     <ClCompile Include="PraktikumVGJS\work.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PraktikumVGJS\VGJSCoroLockfree.h" />
+    <ClInclude Include="PraktikumVGJS\VGJSHeaders.h" />
     <ClInclude Include="PraktikumVGJS\mctsGame.h" />
     <ClInclude Include="PraktikumVGJS\mctsStructs.h" />
     <ClInclude Include="PraktikumVGJS\threadpool.hpp" />
-    <ClInclude Include="PraktikumVGJS\VECoro.h" />
-    <ClInclude Include="PraktikumVGJS\VECoroLockfree.h" />
-    <ClInclude Include="PraktikumVGJS\VEGameJobSystem.h" />
-    <ClInclude Include="PraktikumVGJS\VEGameJobSystemLockfree.h" />
-    <ClInclude Include="PraktikumVGJS\vgjs.h" />
     <ClInclude Include="PraktikumVGJS\tests.h" />
+    <ClInclude Include="PraktikumVGJS\VGJS.h" />
+    <ClInclude Include="PraktikumVGJS\VGJSCoro.h" />
+    <ClInclude Include="PraktikumVGJS\VGJSLockfree.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="script.sh" />

@@ -201,7 +201,7 @@ namespace mcts {
 
 	template<bool WITHALLOCATE = false, typename FT1 = Function, typename FT2 = std::function<void(void)>>
 	Coro<std::tuple<double, double>> performance_function(bool print = true, bool wrtfunc = true, unsigned int num = 1000, unsigned int num_trees = 128, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
-		auto& js = JobSystem::instance();
+		JobSystem js;
 
 		double duration0_sum = 0;
 		double duration2_sum = 0;
@@ -273,7 +273,7 @@ namespace mcts {
 		int mdt = dt1;
 		bool wrt_function = true; //speedup wrt to sequential function calls w/o JS
 
-		auto& js = JobSystem::instance();
+		JobSystem js;
 
 		std::cout << "\nPerformance for " << text << " on " << js.get_thread_count().value << " threads\n\n";
 		co_await performance_function<WITHALLOCATE, Function, std::function<void(void)>>(false, wrt_function, mt, mt); //heat up, allocate enough jobs

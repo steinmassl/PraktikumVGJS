@@ -10,6 +10,7 @@ namespace lock_free {
         // Correctly initialize HP in all JobQueues
         for (auto& queue : m_global_queues) queue.initHP();
         for (auto& queue : m_local_queues) queue.initHP();
+        for (auto& queue : m_tag_queues) queue.second->initHP();
         m_recycle.initHP();
         m_delete.initHP();
         */
@@ -89,7 +90,7 @@ namespace lock_free {
                     }
                     else {
                         delete m_rlist[i];      // Delete if freelist is full
-                        std::cout << "freelist is full\n";
+                        //std::cout << "freelist is full\n";
                     }
                 }
             }
@@ -160,7 +161,7 @@ namespace lock_free {
                 new_node = m_freelist[--m_freecount];
                 new_node->next = nullptr;           // Clear pointer to successor    
                 m_freelist[m_freecount] = nullptr;
-                std::cout << "used recycled node\n";
+                //std::cout << "used recycled node\n";
             }
             else
                 new_node = new node_t<JOB>();       // Allocate new node when freelist is empty
@@ -229,7 +230,7 @@ namespace lock_free {
         for (int j = 0; j < 200000; j++) {
             Job* job = nullptr;
             job = queue.pop();
-            //std::cout << "Pop: " << (bool) job << std::endl;
+            std::cout << "Pop: " << (bool) job << std::endl;
         }
     }
 

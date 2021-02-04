@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vgjs.h"
+#include "VGJSHeaders.h"
 
 using namespace vgjs;
 

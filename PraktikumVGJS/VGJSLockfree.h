@@ -152,6 +152,8 @@ namespace vgjs {
     template<typename T>
     concept FUNCTOR = FUNCTION<T> || STDFUNCTION<T>;
 
+    using pfvoid = void(*)();
+
     //-----------------------------------------------------------------------------------------
 
     /**
@@ -162,17 +164,9 @@ namespace vgjs {
     };
 
     /**
-    * \brief Base class of things you can put into a queue
-    */
-    class Queuable {
-    public:
-        Queuable* m_next = nullptr;           //next job in the queue
-    };
-
-    /**
     * \brief Base class of coro task promises and jobs.
     */
-    class Job_base : public Queuable {
+    class Job_base {
     public:
         std::atomic<int>    m_children;         //number of children this job is waiting for
         Job_base*           m_parent;           //parent job that created this job
@@ -200,6 +194,7 @@ namespace vgjs {
         n_pmr::memory_resource*     m_mr = nullptr;  //memory resource that was used to allocate this Job
         Job_base*                   m_continuation = nullptr;   //continuation follows this job (a coro is its own continuation)
         std::function<void(void)>   m_function;      //function to compute
+        pfvoid                      m_pfvoid=nullptr;
 
         Job( n_pmr::memory_resource* pmr) : Job_base(), m_mr(pmr), m_continuation(nullptr) {
             m_children = 1;
@@ -207,7 +202,6 @@ namespace vgjs {
         }
 
         void reset() noexcept {         //call only if you want to wipe out the Job data
-            m_next = nullptr;           //e.g. when recycling from a used Jobs queue
             m_children = 1;
             m_parent = nullptr;
             m_continuation = nullptr;
@@ -218,7 +212,8 @@ namespace vgjs {
 
         bool resume() noexcept {    //work is to call the function
             m_children = 1;         //job is its own child, so set to 1
-            m_function();           //run the function, can schedule more children here
+            if (m_pfvoid!=nullptr) m_pfvoid();
+            else m_function();           //run the function, can schedule more children here
             return true;
         }
 
@@ -255,25 +250,114 @@ namespace vgjs {
     };
 
 
-    /**
-    * \brief General FIFO queue class.
-    *
-    * The queue allows for multiple producers multiple consumers. It uses a lightweight
-    * atomic flag as lock. 
-    */
-    template<typename JOB = Queuable, bool SYNC = true>
-    class JobQueue {
+class JobQueue_base {
         friend JobSystem;
-        std::atomic_flag m_lock = ATOMIC_FLAG_INIT;  //for locking the queue
-        JOB*             m_head = nullptr;	        //points to first entry
-        JOB*             m_tail = nullptr;	        //points to last entry
-        int32_t          m_size = 0;                 //number of entries in the queue
+    protected:
+        static constexpr uint32_t K{ 2 };       // Hazard Pointer per thread
+        static constexpr uint32_t P{ 16 };      // Maximum number of threads - fixed value until better solution
+        static constexpr uint32_t N{ K * P };   // Total number of hazard pointer
+        static constexpr uint32_t R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
+        static constexpr uint32_t FREELIST_SIZE{ 1 << 20 };
+
+        static inline thread_local thread_index_t m_thread_index{ 0 };  // Initialize with 0 until threads are ready and call initHP()
+    };
+
+    /**
+    * \brief Lock-free FIFO queue class.
+    *
+    * The queue allows for multiple producers multiple consumers.
+    * When number of threads is not known beforehand, algorithm extensions are necessary.
+    * Use maximum number of threads (P) until then. Performance w/ vs w/o extensions?
+    */
+    template<typename JOB = Job_base>
+    class JobQueue : JobQueue_base {
+        friend JobSystem;
+
+        // Node holding pointer to job and next
+        template<typename JOBT>
+        struct node_t {
+            JOBT* job{ nullptr };
+            std::atomic<node_t<JOBT>*> next{ nullptr };
+        };
+
+        std::atomic<node_t<JOB>*>	    m_head;	        //points to first entry
+        std::atomic<node_t<JOB>*>   	m_tail;	        //points to last entry
+        std::atomic<int32_t>	        m_size{ 0 };	//number of entries in the queue
+        static inline node_t<JOB>*      m_HP[N]{};      // All Hazard pointers (read all, write only to 2 thread HP)
+
+        // Per thread private variables
+        static inline thread_local node_t<JOB>**    m_hp0{ &m_HP[K * m_thread_index.value] };     // Thread hazard pointer
+        static inline thread_local node_t<JOB>**    m_hp1{ &m_HP[K * m_thread_index.value + 1] }; // FIFO Queue requires 2 HP 
+        static inline thread_local node_t<JOB>*     m_rlist[R]{};       // List of retired nodes
+        static inline thread_local uint32_t         m_rcount{ 0 };      // Number of retired nodes
+        static inline thread_local node_t<JOB>*     m_freelist[FREELIST_SIZE]{};        // List of nodes that can be re-used
+        static inline thread_local uint32_t         m_freecount{ 0 };                   // Number of reusable nodes
+
+        // Free nodes no longer in use by any thread
+        void scan() {
+            uint32_t i, pcount{ 0 }, next_rcount{ 0 };
+            node_t<JOB>* hptr{ nullptr };
+            node_t<JOB>* plist[N]{};        // Current non-null hazard pointers
+            node_t<JOB>* next_rlist[N]{};   // Temporary list for new rlist
+
+            // Stage 1: Scan HP list and insert non-null values in plist
+            for (i = 0; i < N; ++i) {
+                hptr = m_HP[i];
+                if (hptr != nullptr)
+                    plist[pcount++] = hptr;
+            }
+            // Stage 2: Sort plist to prepare for binary search
+            std::sort(plist, plist + pcount);
+
+            // maybe remove duplicates/tallying entries here
+
+            // Stage 3: compare plist against rlist and free nodes no longer in use
+            for (i = 0; i < R; ++i) {
+                if (std::binary_search(plist, plist + pcount, m_rlist[i]))
+                    next_rlist[next_rcount++] = m_rlist[i];
+                else {
+                    //delete m_rlist[i];        // Simply delete when no longer in use
+                    
+                    if (m_freecount < FREELIST_SIZE) {      // Recycle into freelist when no longer in use
+                        m_freelist[m_freecount++] = m_rlist[i];
+                        //std::cout << "Recycling\n";
+                    }
+                    else {
+                        delete m_rlist[i];      // Delete if freelist is full
+                        //std::cout << "freelist is full\n";
+                    }
+                }
+            }
+            // Stage 4: Form new array of retired nodes
+            for (i = 0; i < next_rcount; ++i)
+                m_rlist[i] = next_rlist[i];
+            m_rcount = next_rcount;
+        }
+
+        // Use instead of delete to avoid use-after-free
+        void retireNode(node_t<JOB>* node) {
+            m_rlist[m_rcount++] = node;
+            if (m_rcount >= R)
+                scan();
+        }
 
     public:
+        JobQueue() {
+            // Head and Tail point to dummy node
+            node_t<JOB>* start{ new node_t<JOB>() };
+            m_head.store(start, std::memory_order_release);
+            m_tail.store(start, std::memory_order_release);
+        }
+        JobQueue(const JobQueue<JOB>& queue) noexcept : JobQueue() {}
+        ~JobQueue() {
+            delete m_head.load(std::memory_order_relaxed);   // Delete last dummy node
+        }
 
-        JobQueue() noexcept : m_head(nullptr), m_tail(nullptr), m_size(0) {};	///<JobQueue class constructor
-
-        JobQueue(const JobQueue<JOB>& queue) noexcept : m_head(nullptr), m_tail(nullptr), m_size(0) {};
+        // Set correct location of thread-owned hazard pointers (currently in thread_task())
+        void initHP() {
+            m_hp0 = &m_HP[K * m_thread_index.value];
+            m_hp1 = &m_HP[K * m_thread_index.value + 1];
+        }
 
         /**
         * \brief Deallocate all Jobs in the queue.
@@ -291,74 +375,82 @@ namespace vgjs {
             return res;
         }
 
-        ~JobQueue() {}  //destructor
-
         /**
         * \brief Get the number of jobs currently in the queue.
         * \returns the number of jobs (Coros and Jobs) currently in the queue.
         */
         uint32_t size() {
-            if constexpr (SYNC) {
-                while (m_lock.test_and_set(std::memory_order::acquire));  // acquire lock
-            }
-            auto s =  m_size;
-            if constexpr (SYNC) {
-                m_lock.clear(std::memory_order::release); //release lock
-            }
-            return s;
+            return m_size.load(std::memory_order_acquire);
         }
 
         /**
         * \brief Pushes a job onto the queue tail.
-        * \param[in] job The job to be pushed into the queue.
+        * \param[in] job_to_push The job to be pushed into the queue.
         */
-        void push(JOB* job) {
-            if constexpr (SYNC) {
-                while (m_lock.test_and_set(std::memory_order::acquire));  // acquire lock
+        void push(JOB* job_to_push) {
+            //node_t<JOB>* new_node{ new node_t<JOB>() };     // Allocate new node. Alternatively use existing node from freelist
+            
+            node_t<JOB>* new_node{ nullptr };
+            if (m_freecount > 0) {                  // Re-use node from freelist
+                new_node = m_freelist[--m_freecount];
+                new_node->next = nullptr;           // Clear pointer to successor    
+                m_freelist[m_freecount] = nullptr;
+                //std::cout << "used recycled node\n";
             }
-            job->m_next = nullptr;      //clear pointer to successor
-            if (m_head == nullptr) {    //if queue is empty
-                m_head = job;           //let m_head point to the job
-            }
-            if (m_tail == nullptr) {    //if queue was empty 
-                m_tail = job;           //let m_tail point to the job
-            }
-            else {
-                m_tail->m_next = (JOB*)job;   //add the job to the queue tail
-                m_tail = job;           //m_tail points to the new job
-            }
-
-            m_size++;                   //increase size
-            if constexpr (SYNC) {
-                m_lock.clear(std::memory_order::release); //release lock
-            }
-        };
+            else
+                new_node = new node_t<JOB>();       // Allocate new node when freelist is empty
+            
+            new_node->job = job_to_push;                    // Copy job into node - next pointer of node already nullptr
+            node_t<JOB>* tail;
+            while (true) {                                                          // Try until job pushed into queue
+                tail = m_tail.load(std::memory_order_relaxed);                      // Read Queue tail
+                *m_hp0 = tail;                                                      // Set hazard pointer
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;       // Check if hazard pointer is valid, otherwise try again
+                node_t<JOB>* next{ tail->next.load(std::memory_order_acquire) };    // Read next node of tail
+                if (tail != m_tail.load(std::memory_order_acquire)) continue;       // Is Queue tail still consistent? if not, try again
+                if (next != nullptr) {                                              // Was tail pointing to the last node?
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail was not last node, swing tail to next node - test with compare_exchange_strong as well
+                    continue;                                                               // Try to push again
+                }
+                if (tail->next.compare_exchange_weak(next, new_node, std::memory_order_release)) break;     // Try to link new node to end of list,
+            }                                                                                               // if successful, push is done, exit loop
+            m_tail.compare_exchange_weak(tail, new_node, std::memory_order_acq_rel);            // Swing tail to the inserted node
+            *m_hp0 = nullptr;           // No longer hazardous
+            m_size++;
+        }
 
         /**
-        * \brief Pops a job from the tail of the queue.
+        * \brief Pops a job from the head of the queue.
         * \returns a job or nullptr.
         */
         JOB* pop() {
-            if (m_head == nullptr) return nullptr;
-
-            if constexpr (SYNC) {
-                while (m_lock.test_and_set(std::memory_order::acquire));  // acquire lock
-            }
-
-            JOB* head = m_head;
-            if (head != nullptr) {              //if there is a job at the head of the queue
-                m_head = (JOB*)head->m_next;    //let point m_head to its successor
-                m_size--;                       //decrease number of jobs 
-                if (head == m_tail) {           //if this is the only job
-                    m_tail = nullptr;           //let m_tail point to nullptr
+            JOB* res = nullptr;     // Pointer to return
+            node_t<JOB>* head;
+            while (true) {          // Try until job popped from queue
+                head = m_head.load(std::memory_order_acquire);                      // Read Queue head
+                *m_hp0 = head;                                                      // Set first hazard pointer
+                if (head != m_head.load(std::memory_order_acquire)) continue;       // Check if hazard pointer is valid, otherwise try again
+                node_t<JOB>* tail{ m_tail.load(std::memory_order_relaxed) };        // Read Queue tail
+                node_t<JOB>* next{ head->next.load(std::memory_order_acquire) };    // Read next node of head
+                *m_hp1 = next;                                                      // Set second hazard pointer
+                if (head != m_head.load(std::memory_order_relaxed)) continue;       // Is Queue head still consistent? if not, try again
+                if (next == nullptr) {                                              // Is Queue empty?
+                    *m_hp0 = nullptr;                                               // No longer hazardous, second HP already nullptr
+                    return nullptr;                                                 // Queue was empty, no pop
                 }
-            }
-            if constexpr (SYNC) {
-                m_lock.clear(std::memory_order::release);   //release lock
-            }
-            return head;
-        };
-
+                if (head == tail) {                                                         // Is tail falling behind?
+                    m_tail.compare_exchange_weak(tail, next, std::memory_order_release);    // Tail falling behind, advance it
+                    continue;                                                               // Try to pop again
+                }
+                res = next->job;                                                                    // Read value before CAS, otherwise another pop might free the next node
+                if (m_head.compare_exchange_weak(head, next, std::memory_order_release)) break;     // Try to swing Queue head to the next node,
+            }                                                                                       // if successful, pop is done, exit loop
+            *m_hp0 = nullptr;       // No longer hazardous
+            *m_hp1 = nullptr;
+            retireNode(head);       // Safe to retire previous Queue head node
+            m_size--;
+            return res;             // Return job from previous Queue head
+        }
     };
 
 
@@ -369,31 +461,30 @@ namespace vgjs {
     * It can add new jobs, and wait until they are done.
     */
     class JobSystem {
-        static inline const uint32_t c_queue_capacity = 1<<20; ///<save at most N Jobs for recycling
+        static inline const uint32_t c_queue_capacity = 1<<10; ///<save at most N Jobs for recycling
         static inline const bool c_enable_logging = true;
 
     private:
-        n_pmr::memory_resource*                     m_mr;                   ///<use to allocate/deallocate Jobs
-        std::vector<std::thread>	                m_threads;	            ///<array of thread structures
-        std::atomic<uint32_t>   		            m_thread_count = 0;     ///<number of threads in the pool
-        std::atomic<bool>                           m_terminated = false;   ///<flag set true when the last thread has exited
-        thread_index_t							    m_start_idx;            ///<idx of first thread that is created
-        static inline thread_local thread_index_t	m_thread_index = thread_index_t{};  ///<each thread has its own number
-        std::atomic<bool>						    m_terminate = false;	///<Flag for terminating the pool
-        static inline thread_local Job_base*        m_current_job = nullptr;///<Pointer to the current job of this thread0
-        std::vector<JobQueue<Job_base>>             m_global_queues;	    ///<each thread has its own Job queue, multiple produce, single consume
-        std::vector<JobQueue<Job_base>>             m_local_queues;	        ///<each thread has its own Job queue, multiple produce, single consume
-
-        std::vector<std::unique_ptr<std::condition_variable>>                     m_cv;
-        std::vector<std::unique_ptr<std::mutex>>                                  m_mutex;
-        std::unordered_map<tag_t,std::unique_ptr<JobQueue<Job_base>>,tag_t::hash> m_tag_queues;
-
-        static inline thread_local JobQueue<Job,false>    m_recycle;              ///<save old jobs for recycling
-        static inline thread_local JobQueue<Job,false>    m_delete;               ///<save old jobs for recycling
-        n_pmr::vector<n_pmr::vector<JobLog>>	m_logs;				    ///< log the start and stop times of jobs
-        bool                                    m_logging = false;      ///< if true then jobs will be logged
-        std::map<int32_t, std::string>          m_types;                ///<map types to a string for logging
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time = std::chrono::high_resolution_clock::now();	//time when program started
+        static inline std::atomic<uint64_t>             m_init_counter = 0;
+        static inline n_pmr::memory_resource*           m_mr;                   ///<use to allocate/deallocate Jobs
+        static inline std::vector<std::thread>	        m_threads;	            ///<array of thread structures
+        static inline std::atomic<uint32_t>   		    m_thread_count = 0;     ///<number of threads in the pool
+        static inline std::atomic<bool>                 m_terminated = false;   ///<flag set true when the last thread has exited
+        static inline thread_index_t				    m_start_idx;            ///<idx of first thread that is created
+        static inline thread_local thread_index_t	    m_thread_index = thread_index_t{};  ///<each thread has its own number
+        static inline std::atomic<bool>				    m_terminate = false;	///<Flag for terminating the pool
+        static inline thread_local Job_base*            m_current_job = nullptr;///<Pointer to the current job of this thread0
+        static inline std::vector<JobQueue<Job_base>>   m_global_queues;	    ///<each thread has its own Job queue, multiple produce, single consume
+        static inline std::vector<JobQueue<Job_base>>   m_local_queues;	        ///<each thread has its own Job queue, multiple produce, single consume
+        static inline std::vector<std::unique_ptr<std::condition_variable>>                     m_cv;
+        static inline std::vector<std::unique_ptr<std::mutex>>                                  m_mutex;
+        static inline std::unordered_map<tag_t,std::unique_ptr<JobQueue<Job_base>>,tag_t::hash> m_tag_queues;
+        static inline thread_local JobQueue<Job>      m_recycle;        ///<save old jobs for recycling
+        static inline thread_local JobQueue<Job>      m_delete;         ///<save old jobs for deleting
+        static inline n_pmr::vector<n_pmr::vector<JobLog>>	m_logs;				    ///< log the start and stop times of jobs
+        static inline bool                                  m_logging = false;      ///< if true then jobs will be logged
+        static inline std::map<int32_t, std::string>        m_types;                ///<map types to a string for logging
+        static inline std::chrono::time_point<std::chrono::high_resolution_clock> m_start_time = std::chrono::high_resolution_clock::now();	//time when program started
 
         /**
         * \brief Allocate a job so that it can be scheduled.
@@ -431,15 +522,22 @@ namespace vgjs {
             Job* job = allocate_job();
             if constexpr (std::is_same_v<std::decay_t<F>, Function>) {
                 job->m_function     = f.get_function();
+                job->m_pfvoid       = nullptr;
                 job->m_thread_index = f.m_thread_index;
                 job->m_type         = f.m_type;
                 job->m_id           = f.m_id;
             }
             else {
-                job->m_function = f; //std::function<void(void)> or a lambda
+                if constexpr (std::is_pointer_v<std::remove_reference_t<decltype(f)>>) {
+                    job->m_pfvoid = f;
+                }
+                else {
+                    job->m_function = f; //std::function<void(void)> or a lambda
+                    job->m_pfvoid = nullptr;
+                }
             }
             
-            if (!job->m_function) {
+            if (!job->m_function && !job->m_pfvoid) {
                 std::cout << "Empty function\n";
                 std::terminate();
             }
@@ -455,8 +553,16 @@ namespace vgjs {
         * \param[in] start_idx Number of first thread, if 1 then the main thread should enter as thread 0.
         * \param[in] mr The memory resource to use for allocating Jobs.
         */
-        JobSystem(thread_count_t threadCount = thread_count_t(0), thread_index_t start_idx = thread_index_t(0), n_pmr::memory_resource* mr = n_pmr::new_delete_resource()) noexcept
-            : m_mr(mr), m_start_idx(start_idx) {
+        JobSystem(thread_count_t threadCount = thread_count_t(0), thread_index_t start_idx = thread_index_t(0)
+            , n_pmr::memory_resource* mr = n_pmr::new_delete_resource()) noexcept {
+
+            auto cnt = m_init_counter.fetch_add(1);
+            if(cnt>0) return;
+
+            m_mr = mr;
+            m_start_idx = start_idx;
+            m_terminate = false;
+            m_terminated = false;
 
             m_thread_count = threadCount.value;
             if (m_thread_count <= 0) {
@@ -482,19 +588,6 @@ namespace vgjs {
             m_logs.resize(m_thread_count, n_pmr::vector<JobLog>{mr});    //make room for the log files
         };
 
-        /**
-        * \brief Singleton access through class.
-        * \param[in] threadCount Number of threads in the system.
-        * \param[in] start_idx Number of first thread, if 1 then the main thread should enter as thread 0.
-        * \param[in] mr The memory resource to use for allocating Jobs.
-        * \returns a pointer to the JobSystem instance.
-        */
-        static JobSystem& instance( thread_count_t threadCount = thread_count_t(0)
-                                    , thread_index_t start_idx = thread_index_t(0)
-                                    , n_pmr::memory_resource* mr = n_pmr::new_delete_resource()) noexcept {
-            static JobSystem instance(threadCount, start_idx, mr); //thread safe init guaranteed - Meyer's Singleton
-            return instance;
-        };
 
         /**
         * \brief Test whether the job system has been started yet.
@@ -508,16 +601,7 @@ namespace vgjs {
         JobSystem& operator=(const JobSystem&) = delete;
         JobSystem(JobSystem&&) = default;					// but movable
         JobSystem& operator=(JobSystem&&) = default;
-
-        /**
-        * \brief JobSystem class destructor.
-        *
-        * By default shuts down the system and waits for the threads to terminate.
-        */
-        ~JobSystem() noexcept {
-            m_terminate = true;
-            wait_for_termination();
-        };
+        ~JobSystem() = default;
 
         void on_finished(Job* job) noexcept;            //called when the job finishes, i.e. all children have finished
 
@@ -554,6 +638,15 @@ namespace vgjs {
             constexpr uint32_t NOOP = 1<<5;                                   //number of empty loops until garbage collection
             thread_local static uint32_t noop_counter = 0;
             m_thread_index = threadIndex;	                                //Remember your own thread index number
+
+            JobQueue_base::m_thread_index = threadIndex;        // Set threadindex for HP
+
+            // Correctly initialize HP in all JobQueues
+            for (auto& queue : m_global_queues) queue.initHP();
+            for (auto& queue : m_local_queues) queue.initHP();
+            m_recycle.initHP();
+            m_delete.initHP();
+
             static std::atomic<uint32_t> thread_counter = m_thread_count.load();	//Counted down when started
 
             thread_counter--;			                                    //count down
@@ -608,7 +701,7 @@ namespace vgjs {
                 }
             };
 
-           //std::cout << "Thread " << m_thread_index << " left " << m_thread_count << "\n";
+           //std::cout << "Thread " << m_thread_index.value << " left " << m_thread_count.load() << "\n";
 
            m_global_queues[m_thread_index.value].clear(); //clear your global queue
            m_local_queues[m_thread_index.value].clear();  //clear your local queue
@@ -668,7 +761,7 @@ namespace vgjs {
         * \brief Get a pointer to the current job.
         * \returns a pointer to the current job.
         */
-        Job_base* current_job() noexcept {
+        static Job_base* current_job() noexcept {
             return m_current_job;
         }
 
@@ -908,7 +1001,7 @@ namespace vgjs {
     * \returns the job that is currently executed.
     */
     inline Job_base* current_job() {
-        return JobSystem::is_instance_created() ? (Job_base*)JobSystem::instance().current_job() : nullptr;
+        return (Job_base*)JobSystem::current_job();
     }
 
     /**
@@ -945,7 +1038,7 @@ namespace vgjs {
             return ret;
         }
         else {
-            return JobSystem::instance().schedule(std::forward<F>(functions), tg, parent, children);
+            return JobSystem().schedule(std::forward<F>(functions), tg, parent, children);
         }
     }
 
@@ -956,7 +1049,7 @@ namespace vgjs {
     */
     template<typename F>
     inline void continuation(F&& f) noexcept {
-        JobSystem::instance().continuation(std::forward<F>(f)); // forward to the job system
+        JobSystem().continuation(std::forward<F>(f)); // forward to the job system
     };
 
 
@@ -966,14 +1059,14 @@ namespace vgjs {
     * \brief Terminate the job system
     */
     inline void terminate() {
-        JobSystem::instance().terminate();
+        JobSystem().terminate();
     }
 
     /**
     * \brief Wait for the job system to terminate
     */
     inline void wait_for_termination() {
-        JobSystem::instance().wait_for_termination();
+        JobSystem().wait_for_termination();
     }
 
     /**
@@ -982,7 +1075,7 @@ namespace vgjs {
     * in a memory data structure.
     */
     inline void enable_logging() {
-        JobSystem::instance().enable_logging();
+        JobSystem().enable_logging();
     }
 
     /**
@@ -991,14 +1084,14 @@ namespace vgjs {
     * in a memory data structure.
     */
     inline void disable_logging() {
-        JobSystem::instance().disable_logging();
+        JobSystem().disable_logging();
     }
 
     /**
     * \returns whether logging is turned on
     */
     inline bool is_logging() {
-        return JobSystem::instance().is_logging();
+        return JobSystem().is_logging();
     }
 
     /**
@@ -1006,14 +1099,14 @@ namespace vgjs {
     * \returns a reference to the logging data.
     */
     inline auto& get_logs() {
-        return JobSystem::instance().get_logs();
+        return JobSystem().get_logs();
     }
 
     /**
     * \brief Clear all logs.
     */
     inline void clear_logs() {
-        JobSystem::instance().clear_logs();
+        JobSystem().clear_logs();
     }
 
     /**
@@ -1030,8 +1123,8 @@ namespace vgjs {
         std::chrono::high_resolution_clock::time_point& t1, std::chrono::high_resolution_clock::time_point& t2,
         thread_index_t exec_thread, bool finished, thread_type_t type, thread_id_t id) {
 
-        auto& logs = JobSystem::instance().get_logs();
-        logs[JobSystem::instance().get_thread_index().value].emplace_back( t1, t2, JobSystem::instance().get_thread_index(), finished, type, id);
+        auto& logs = JobSystem().get_logs();
+        logs[JobSystem().get_thread_index().value].emplace_back( t1, t2, JobSystem().get_thread_index(), finished, type, id);
     }
 
     /**
@@ -1081,10 +1174,10 @@ namespace vgjs {
     * \brief Dump all job data into a json log file.
     */
     inline void save_log_file() {
-        auto& logs = JobSystem::instance().get_logs();
+        auto& logs = JobSystem().get_logs();
         std::ofstream outdata;
         outdata.open("log.json");
-        auto& types = JobSystem::instance().types();
+        auto& types = JobSystem().types();
 
         if (outdata) {
             outdata << "{" << std::endl;
@@ -1092,7 +1185,7 @@ namespace vgjs {
             bool comma = false;
             for (uint32_t i = 0; i < logs.size(); ++i) {
                 for (auto& ev : logs[i]) {
-                    if (ev.m_t1 >= JobSystem::instance().start_time() && ev.m_t2 >= ev.m_t1) {
+                    if (ev.m_t1 >= JobSystem().start_time() && ev.m_t2 >= ev.m_t1) {
 
                         if (comma) outdata << "," << std::endl;
 
@@ -1101,7 +1194,7 @@ namespace vgjs {
                         if (it != types.end()) name = it->second;
 
                         save_job(outdata, "\"cat\"", 0, (uint32_t)ev.m_exec_thread.value,
-                            std::chrono::duration_cast<std::chrono::nanoseconds>(ev.m_t1 - JobSystem::instance().start_time()).count(),
+                            std::chrono::duration_cast<std::chrono::nanoseconds>(ev.m_t1 - JobSystem().start_time()).count(),
                             std::chrono::duration_cast<std::chrono::nanoseconds>(ev.m_t2 - ev.m_t1).count(),
                             "\"X\"", "\"" + name + "\"", "\"id\": " + std::to_string(ev.m_id.value));
 
@@ -1114,7 +1207,7 @@ namespace vgjs {
             outdata << "}" << std::endl;
         }
         outdata.close();
-        JobSystem::instance().clear_logs();
+        JobSystem().clear_logs();
     }
 
 }

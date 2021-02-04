@@ -7,9 +7,6 @@
     <ClCompile Include="PraktikumVGJS\work.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PraktikumVGJS\test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PraktikumVGJS\mandelbrot.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -22,6 +19,9 @@
     <ClCompile Include="PraktikumVGJS\threadpool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PraktikumVGJS\performance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PraktikumVGJS\mctsGame.h">
@@ -30,25 +30,25 @@
     <ClInclude Include="PraktikumVGJS\mctsStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PraktikumVGJS\VECoro.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PraktikumVGJS\VECoroLockfree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PraktikumVGJS\VEGameJobSystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PraktikumVGJS\VEGameJobSystemLockfree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PraktikumVGJS\vgjs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PraktikumVGJS\tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PraktikumVGJS\threadpool.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VGJS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VGJSCoro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VGJSHeaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VGJSLockfree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PraktikumVGJS\VGJSCoroLockfree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
