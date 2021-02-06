@@ -61,6 +61,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="script.sh" />
+    <None Include="run.sh" />
   </ItemGroup>
 </Project>

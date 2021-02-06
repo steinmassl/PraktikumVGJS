@@ -257,7 +257,7 @@ class JobQueue_base {
         static constexpr uint32_t P{ 16 };      // Maximum number of threads - fixed value until better solution
         static constexpr uint32_t N{ K * P };   // Total number of hazard pointer
         static constexpr uint32_t R{ 2 * N };   // Threshold for starting scan (R = N + Omega(H))
-        static constexpr uint32_t FREELIST_SIZE{ 1 << 20 };
+        static constexpr uint32_t FREELIST_SIZE{ 1 << 10 };
 
         static inline thread_local thread_index_t m_thread_index{ 0 };  // Initialize with 0 until threads are ready and call initHP()
     };

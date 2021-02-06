@@ -39,7 +39,7 @@
     <ClInclude Include="PraktikumVGJS\VGJSLockfree.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="script.sh" />
+    <None Include="run.sh" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

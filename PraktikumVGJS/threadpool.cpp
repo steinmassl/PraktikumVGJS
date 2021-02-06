@@ -54,7 +54,7 @@ namespace mjs {
 
 		while (duration.count() < micro) {
 			for (int i = 0; i < 10; ++i) {
-				counter = counter + counter;
+				counter += counter;
 				root = sqrt((float)counter);
 			}
 			duration = duration_cast<microseconds>(high_resolution_clock::now() - start);
@@ -73,13 +73,7 @@ namespace mjs {
         // allocation
         std::pmr::vector<FT> perfv{ mr };
         if constexpr (!WITHALLOCATE) {
-            if constexpr (std::is_same_v<FT, std::function<void()>>) {
-                perfv.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
-            }
-            /* else {
-                perfv2.reserve(num);
-                for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, std::pmr::new_delete_resource(), micro));
-            } */
+            perfv.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
         }
 
         // Set total number of jobs to be executed
@@ -89,13 +83,7 @@ namespace mjs {
         g_start = high_resolution_clock::now(); // use timers in threadpool.hpp
         // time allocation as well
         if constexpr (WITHALLOCATE) {
-            if constexpr (std::is_same_v<FT,std::function<void()>>) {
-                perfv.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
-            }
-            /* else {
-                perfv2.reserve(num);
-                for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, mr, micro));
-            }*/
+            perfv.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
         }
         mjs.schedule(perfv);    // start jobs in mjs
         
@@ -105,14 +93,10 @@ namespace mjs {
         // calculate + output
         double speedup0 = (double)duration0.count() / (double)g_duration.count();
         double efficiency0 = speedup0 / mjs.get_thread_count();
-        if (wrtfunc) {
-            if (print /* && efficiency0 > 0.85 */) {
-                std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
-            }
-            return std::make_tuple(speedup0, efficiency0);
-        }
-        std::cout << "Returning empty tuple\n";
-        return std::tuple(0,0);
+		if (print /* && efficiency0 > 0.85 */) {
+			std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
+		}
+        return std::make_tuple(speedup0, efficiency0);
     }
 
     template<bool WITHALLOCATE = false, typename FT>
@@ -128,11 +112,11 @@ namespace mjs {
         bool wrt_function = true; //speedup wrt to sequential function calls w/o JS
 
         std::cout << "\nPerformance for " << text << " on " << mjs.get_thread_count() << " threads\n\n";
-        performance_function<WITHALLOCATE, std::function<void(void)>>(mjs, false, wrt_function, (int)(num), 0); //heat up, allocate enough jobs
+        performance_function<WITHALLOCATE, FT>(mjs, false, wrt_function, (int)(num), 0); //heat up, allocate enough jobs
         for (int us = st; us <= mt; us += mdt) {
             int loops = (us == 0 ? num : (runtime / us));
             auto [speedup, eff] = performance_function<WITHALLOCATE, FT>(mjs, true, wrt_function, loops, us, mr);
-            if (eff > 0.95 && us >= 10) return;
+            if (eff > 0.95 || us >= 10) return;
             if (us >= 15) mdt = dt2;
             if (us >= 20) mdt = dt3;
             if (us >= 50) mdt = dt4;

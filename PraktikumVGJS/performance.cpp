@@ -242,21 +242,21 @@ namespace test {
 		co_await performance_driver<false,pfvoid, pfvoid>("void(*)() calls (w / o allocate)");
 		//co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate new/delete)", std::pmr::new_delete_resource());
 		co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate synchronized)", &g_global_mem_f);
-		//co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate unsynchronized)", &g_local_mem_f);
+		co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate unsynchronized)", &g_local_mem_f);
 		//co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate monotonic)", &g_local_mem_m);
 		//g_local_mem_m.release();
 
 		co_await performance_driver<false,Function, std::function<void(void)>>("std::function calls (w / o allocate)" );
 		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
 		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
-		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
+		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
 		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
 		//g_local_mem_m.release();
 
 		co_await performance_driver<false,Coro<>, Coro<>>("Coro<> calls (w / o allocate)");
 		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
-		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
+		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
 		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
 		//g_local_mem_m.release();
 

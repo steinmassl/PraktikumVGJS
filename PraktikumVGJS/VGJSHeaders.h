@@ -3,7 +3,7 @@
 // Abstracted VGJS includes to toggle them easily
 
 // Toggle Queue type here
-#define LOCKFREE 1
+#define LOCKFREE 0
 
 #if (LOCKFREE)
 	#include "VGJSLockfree.h"

@@ -37,7 +37,7 @@ namespace work {
 
         while (duration.count() < micro) {
             for (int i = 0; i < 10; ++i) {
-                counter = counter + counter;
+                counter += counter;
                 root = sqrt((float)counter);
             }
             duration = duration_cast<microseconds>(high_resolution_clock::now() - start);
@@ -132,7 +132,7 @@ namespace work {
         for (int us = st; us <= mt; us += mdt) {
             int loops = (us == 0 ? num : (runtime / us));
             auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, loops, us, mr);
-            if (eff > 0.95 && us >= 10) co_return;
+            if (eff > 0.95 || us >= 10) co_return;
             if (us >= 15) mdt = dt2;
             if (us >= 20) mdt = dt3;
             if (us >= 50) mdt = dt4;
@@ -146,21 +146,21 @@ namespace work {
         co_await performance_driver<false, pfvoid, pfvoid>("void(*)() calls (w / o allocate)");
         //co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate new/delete)", std::pmr::new_delete_resource());
         co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate synchronized)", &g_global_mem_f);
-        //co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate unsynchronized)", &g_local_mem_f);
+        co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate unsynchronized)", &g_local_mem_f);
         //co_await performance_driver<true, pfvoid, pfvoid>("void(*)() calls (with allocate monotonic)", &g_local_mem_m);
         //g_local_mem_m.release();
 
         co_await performance_driver<false, Function, std::function<void(void)>>("std::function calls (w / o allocate)");
         //co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
         co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
-        //co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
+        co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
         //co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
         //g_local_mem_m.release();
 
         co_await performance_driver<false, Coro<>, Coro<>>("Coro<> calls (w / o allocate)");
         //co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
         co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
-        //co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
+        co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
         //co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
         //g_local_mem_m.release();
 

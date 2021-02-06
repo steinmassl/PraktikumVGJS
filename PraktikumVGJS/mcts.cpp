@@ -253,12 +253,10 @@ namespace mcts {
 		// calculate + output
 		double speedup0 = duration0_sum / duration2_sum;
 		double efficiency0 = speedup0 / js.get_thread_count().value;
-		if (wrtfunc) {
-			if (print) {
-				std::cout << "Wrt function calls: MCTS " << std::right << std::setw(3) << num_trees << " trees" << " Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
-			}
-			co_return std::make_tuple(speedup0, efficiency0);
+		if (print) {
+			std::cout << "Wrt function calls: MCTS " << std::right << std::setw(3) << num_trees << " trees" << " Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
 		}
+		co_return std::make_tuple(speedup0, efficiency0);
 	}
 
 	template<bool WITHALLOCATE = false, typename FT1, typename FT2>
@@ -276,7 +274,7 @@ namespace mcts {
 		JobSystem js;
 
 		std::cout << "\nPerformance for " << text << " on " << js.get_thread_count().value << " threads\n\n";
-		co_await performance_function<WITHALLOCATE, Function, std::function<void(void)>>(false, wrt_function, mt, mt); //heat up, allocate enough jobs
+		co_await performance_function<WITHALLOCATE, FT1, FT2>(false, wrt_function, mt, mt); //heat up, allocate enough jobs
 		for (int num_trees = st; num_trees <= mt; num_trees = num_trees * 2) {
 			auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, num, num_trees);
 		}
@@ -286,17 +284,8 @@ namespace mcts {
 	Coro<> test() {
 
 		co_await performance_driver<false, Function, std::function<void(void)>>("std::function calls (w / o allocate)");
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
-		g_local_mem_m.release();
 
 		co_await performance_driver<false, Coro<>, Coro<>>("Coro<> calls (w / o allocate)");
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
 
 		//int win_status = mcts.getCurrentGame().checkStatus();
 		//std::cout << "Status: " << win_status << std::endl;

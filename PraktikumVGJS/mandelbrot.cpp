@@ -150,7 +150,7 @@ namespace mandelbrot {
 					}
 				}
 			}
-			co_await perfv2;
+			co_await std::move(perfv2);
 			auto duration2 = duration_cast<microseconds>(high_resolution_clock::now() - start2);
 			//std::cout << "duration2: " << duration2.count() << "\n";
 			duration2_sum += duration2.count();
@@ -161,12 +161,10 @@ namespace mandelbrot {
 		// calculate + output
 		double speedup0 = duration0_sum / duration2_sum;
 		double efficiency0 = speedup0 / js.get_thread_count().value;
-		if (wrtfunc) {
-			if (print) {
-				std::cout << "Wrt function calls: Mandelbrot " << std::right << std::setw(4) << width << " Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
-			}
-			co_return std::make_tuple(speedup0, efficiency0);
+		if (print) {
+			std::cout << "Wrt function calls: Mandelbrot " << std::right << std::setw(4) << width << " Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
 		}
+		co_return std::make_tuple(speedup0, efficiency0);
 	}
 
 	template<bool WITHALLOCATE = false, typename FT1, typename FT2>
@@ -184,7 +182,7 @@ namespace mandelbrot {
 		JobSystem js;
 
 		std::cout << "\nPerformance for " << text << " on " << js.get_thread_count().value << " threads\n\n";
-		co_await performance_function<WITHALLOCATE, Function, std::function<void(void)>>(false, wrt_function, num, WIDTH); //heat up, allocate enough jobs
+		co_await performance_function<WITHALLOCATE, FT1, FT2>(false, wrt_function, num, WIDTH); //heat up, allocate enough jobs
 		for (int width = st; width <= mt; width += mdt) {
 			auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, num, width);
 			if (width >= 10) mdt = dt2;
@@ -199,17 +197,17 @@ namespace mandelbrot {
 
 
 		co_await performance_driver<false, Function, std::function<void(void)>>("std::function calls (w / o allocate)");
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
+		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate new/delete)", std::pmr::new_delete_resource());
 		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate synchronized)", &g_global_mem_f);
 		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate unsynchronized)", &g_local_mem_f);
-		co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
-		g_local_mem_m.release();
+		//co_await performance_driver<true, Function, std::function<void(void)>>("std::function calls (with allocate monotonic)", &g_local_mem_m);
+		//g_local_mem_m.release();
 
 		co_await performance_driver<false, Coro<>, Coro<>>("Coro<> calls (w / o allocate)");
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
+		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate new/delete)", std::pmr::new_delete_resource());
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate synchronized)", &g_global_mem_c);
 		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate unsynchronized)", &g_local_mem_c);
-		co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
+		//co_await performance_driver<true, Coro<>, Coro<>>("Coro<> calls (with allocate monotonic)", &g_local_mem_m);
 		
 		
 		//draw();		// Start drawing
@@ -217,22 +215,4 @@ namespace mandelbrot {
 		vgjs::terminate();
 		co_return;
 	}
-
-/*
-n_pmr::vector<std::function<void(void)>> g_vector;						// Use same vector for every recursive call (save ram when thread count in VGJS is low)
-
-void mandelbrotRecursive(uint32_t y) {
-	g_vector.clear();													// Clear vector to reuse for this round
-
-	for (uint32_t i = 0; i < WIDTH; i++) {
-		g_vector.emplace_back([=]() {calculatePixel(i, y); });			// Parallelise per pixel
-	}
-	schedule( g_vector);
-	continuation([=]() {
-		if (y < (HEIGHT - 1))
-			schedule([=]() {mandelbrotRecursive(y + 1); });
-	});
-
-}
-*/
 }
