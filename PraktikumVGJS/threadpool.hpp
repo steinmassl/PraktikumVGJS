@@ -16,9 +16,9 @@
 
 using namespace std::chrono;
 
-std::atomic<uint32_t> g_job_count;
-auto g_start = high_resolution_clock::now();
-auto g_duration = duration_cast<microseconds>(high_resolution_clock::now() - g_start);
+//std::atomic<uint32_t> g_job_count;
+//auto g_start = high_resolution_clock::now();
+//auto g_duration = duration_cast<microseconds>(high_resolution_clock::now() - g_start);
 
 namespace vks
 {

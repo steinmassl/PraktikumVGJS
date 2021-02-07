@@ -27,7 +27,7 @@ namespace mjs {
             m_pool.threads[rand() % m_thread_count]->addJob(std::move(job));
         }
 
-        void schedule(std::pmr::vector<std::function<void()>>& jobs) {
+        void schedule(std::pmr::vector<std::function<void()>>&& jobs) {
             for (int i = 0; i < jobs.size(); i++)
                 m_pool.threads[i % m_thread_count]->addJob(std::move(jobs[i]));    // Spread jobs over all threads evenly
             
@@ -63,35 +63,45 @@ namespace mjs {
 	}
 
     template<bool WITHALLOCATE = false, typename FT = std::function<void(void)>>
-    std::tuple<double, double> performance_function(MinimalJobSystem& mjs, bool print = true, bool wrtfunc = true, int num = 1000, int micro = 1, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
+    std::tuple<double, double> performance_function(MinimalJobSystem& mjs, bool print = true, bool wrtfunc = true, int num = 1000, int micro = 1, unsigned int loops = 20, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
 
-        // no JS
-        auto start0 = high_resolution_clock::now();
-        for (int i = 0; i < num; ++i) func_perf(micro);
-        auto duration0 = duration_cast<microseconds>(high_resolution_clock::now() - start0);
+        double duration0_sum = 0;
+        double duration2_sum = 0;
 
-        // allocation
-        std::pmr::vector<FT> perfv{ mr };
-        if constexpr (!WITHALLOCATE) {
-            perfv.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
+        for (uint32_t i = 0; i < loops; i++) {      // run multiple times to even out fluctuations
+            // no JS
+            auto start0 = high_resolution_clock::now();
+            for (int i = 0; i < num; ++i) func_perf(micro);
+            auto duration0 = duration_cast<microseconds>(high_resolution_clock::now() - start0);
+            duration0_sum += duration0.count();
+
+            // allocation
+            std::pmr::vector<FT> perfv{ mr };
+            if constexpr (!WITHALLOCATE) {
+                perfv.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
+            }
+
+            // Set total number of jobs to be executed
+            //g_job_count = num;
+
+            // multithreaded
+            //g_start = high_resolution_clock::now(); // use timers in threadpool.hpp
+            auto start2 = high_resolution_clock::now();
+            // time allocation as well
+            if constexpr (WITHALLOCATE) {
+                perfv.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
+            }
+
+            mjs.schedule(std::move(perfv));    // start jobs in mjs
+
+            mjs.wait(); // sync
+            //g_duration = duration_cast<microseconds>(high_resolution_clock::now() - g_start);
+            auto duration2 = duration_cast<microseconds>(high_resolution_clock::now() - start2);
+            duration2_sum += duration2.count();
         }
-
-        // Set total number of jobs to be executed
-        g_job_count = num;
-
-        // multithreaded
-        g_start = high_resolution_clock::now(); // use timers in threadpool.hpp
-        // time allocation as well
-        if constexpr (WITHALLOCATE) {
-            perfv.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
-        }
-        mjs.schedule(perfv);    // start jobs in mjs
-        
-        mjs.wait(); // sync
-        g_duration = duration_cast<microseconds>(high_resolution_clock::now() - g_start);
 
         // calculate + output
-        double speedup0 = (double)duration0.count() / (double)g_duration.count();
+        double speedup0 = duration0_sum / duration2_sum;
         double efficiency0 = speedup0 / mjs.get_thread_count();
 		if (print /* && efficiency0 > 0.85 */) {
 			std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
@@ -115,8 +125,8 @@ namespace mjs {
         performance_function<WITHALLOCATE, FT>(mjs, false, wrt_function, (int)(num), 0); //heat up, allocate enough jobs
         for (int us = st; us <= mt; us += mdt) {
             int loops = (us == 0 ? num : (runtime / us));
-            auto [speedup, eff] = performance_function<WITHALLOCATE, FT>(mjs, true, wrt_function, loops, us, mr);
-            if (eff > 0.95 || us >= 10) return;
+            auto [speedup, eff] = performance_function<WITHALLOCATE, FT>(mjs, true, wrt_function, loops, us);
+            if (/* eff > 0.95 && */ us >= 10) return;
             if (us >= 15) mdt = dt2;
             if (us >= 20) mdt = dt3;
             if (us >= 50) mdt = dt4;

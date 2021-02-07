@@ -57,55 +57,63 @@ namespace work {
     }
 
     template<bool WITHALLOCATE = false, typename FT1 = Function, typename FT2 = std::function<void(void)>>
-    Coro<std::tuple<double, double>> performance_function(bool print = true, bool wrtfunc = true, int num = 1000, int micro = 1, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
+    Coro<std::tuple<double, double>> performance_function(bool print = true, bool wrtfunc = true, int num = 1000, int micro = 1, unsigned int loops = 10, std::pmr::memory_resource* mr = std::pmr::new_delete_resource()) {
         JobSystem js;
 
-        // no JS
-        auto start0 = high_resolution_clock::now();
-        for (int i = 0; i < num; ++i) func_perf(micro);
-        auto duration0 = duration_cast<microseconds>(high_resolution_clock::now() - start0);
+        double duration0_sum = 0;
+        double duration2_sum = 0;
 
-        // allocation
-        std::pmr::vector<FT2> perfv2{ mr };
-        if constexpr (!WITHALLOCATE) {
-            if constexpr (std::is_same_v<FT1, Function>) {
-                perfv2.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
-            }
-            else {
-                if constexpr (std::is_same_v<FT1, pfvoid>) {
-                    g_micro = micro;
-                    for (int i = 0; i < num; ++i) perfv2.push_back(func_perf2);
+        for (uint32_t i = 0; i < loops; i++) {      // run multiple times to even out fluctuations
+
+            // no JS
+            auto start0 = high_resolution_clock::now();
+            for (int i = 0; i < num; ++i) func_perf(micro);
+            auto duration0 = duration_cast<microseconds>(high_resolution_clock::now() - start0);
+            duration0_sum += duration0.count();
+
+            // allocation
+            std::pmr::vector<FT2> perfv2{ mr };
+            if constexpr (!WITHALLOCATE) {
+                if constexpr (std::is_same_v<FT1, Function>) {
+                    perfv2.resize(num, std::function<void(void)>{[&]() { func_perf(micro); }});
                 }
                 else {
-                    perfv2.reserve(num);
-                    for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, std::pmr::new_delete_resource(), micro));
+                    if constexpr (std::is_same_v<FT1, pfvoid>) {
+                        g_micro = micro;
+                        for (int i = 0; i < num; ++i) perfv2.push_back(func_perf2);
+                    }
+                    else {
+                        perfv2.reserve(num);
+                        for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, std::pmr::new_delete_resource(), micro));
+                    }
                 }
             }
-        }
 
-        // multithreaded
-        auto start2 = high_resolution_clock::now();
-        // time allocation as well
-        if constexpr (WITHALLOCATE) {
-            if constexpr (std::is_same_v<FT1, Function>) {
-                perfv2.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
-            }
-            else {
-                if constexpr (std::is_same_v<FT1, pfvoid>) {
-                    g_micro = micro;
-                    for (int i = 0; i < num; ++i) perfv2.push_back(func_perf2);
+            // multithreaded
+            auto start2 = high_resolution_clock::now();
+            // time allocation as well
+            if constexpr (WITHALLOCATE) {
+                if constexpr (std::is_same_v<FT1, Function>) {
+                    perfv2.resize(num, std::function<void(void)>{ [&]() { func_perf(micro); }});
                 }
                 else {
-                    perfv2.reserve(num);
-                    for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, mr, micro));
+                    if constexpr (std::is_same_v<FT1, pfvoid>) {
+                        g_micro = micro;
+                        for (int i = 0; i < num; ++i) perfv2.push_back(func_perf2);
+                    }
+                    else {
+                        perfv2.reserve(num);
+                        for (int i = 0; i < num; ++i) perfv2.emplace_back(Coro_perf(std::allocator_arg, mr, micro));
+                    }
                 }
             }
+            co_await std::move(perfv2);
+            auto duration2 = duration_cast<microseconds>(high_resolution_clock::now() - start2);
+            duration2_sum += duration2.count();
         }
-        co_await std::move(perfv2);
-        auto duration2 = duration_cast<microseconds>(high_resolution_clock::now() - start2);
 
         // calculate + output
-        double speedup0 = (double)duration0.count() / (double)duration2.count();
+        double speedup0 = duration0_sum / duration2_sum;
         double efficiency0 = speedup0 / js.get_thread_count().value;
 		if (print /* && efficiency0 > 0.85 */) {
 			std::cout << "Wrt function calls: Work/job " << std::right << std::setw(3) << micro << " us Speedup " << std::left << std::setw(8) << speedup0 << " Efficiency " << std::setw(8) << efficiency0 << std::endl;
@@ -124,15 +132,16 @@ namespace work {
         const int dt4 = 10;
         int mdt = dt1;
         bool wrt_function = true; //speedup wrt to sequential function calls w/o JS
+        unsigned int loops = 10;
 
         JobSystem js;
 
         std::cout << "\nPerformance for " << text << " on " << js.get_thread_count().value << " threads\n\n";
         co_await performance_function<WITHALLOCATE, FT1, FT2>(false, wrt_function, (int)(num), 0); //heat up, allocate enough jobs
         for (int us = st; us <= mt; us += mdt) {
-            int loops = (us == 0 ? num : (runtime / us));
-            auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, loops, us, mr);
-            if (eff > 0.95 || us >= 10) co_return;
+            int num_jobs = (us == 0 ? num : (runtime / us));
+            auto [speedup, eff] = co_await performance_function<WITHALLOCATE, FT1, FT2>(true, wrt_function, num_jobs, us, loops, mr);
+            if (eff > 0.95 && us >= 10) co_return;
             if (us >= 15) mdt = dt2;
             if (us >= 20) mdt = dt3;
             if (us >= 50) mdt = dt4;
