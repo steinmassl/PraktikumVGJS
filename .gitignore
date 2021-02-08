@@ -10,7 +10,6 @@ x64/
 log.json
 mandelbrot.ppm
 build/
-*.txt
 
 CMakeFiles/
 CMakeCache.txt

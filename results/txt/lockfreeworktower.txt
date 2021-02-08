@@ -1,0 +1,594 @@
+[H[2J[3JN u m b e r O f L o g i c a l P r o c e s s o r s      
+ 1 6                                                    
+ 
+Running on 2 Threads
+
+
+Performance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95
+
+Performance for void(*)() calls (w / o allocate) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.16354  Efficiency 0.0817699
+Wrt function calls: Work/job   1 us Speedup 1.36176  Efficiency 0.680881
+Wrt function calls: Work/job   2 us Speedup 1.65006  Efficiency 0.825028
+Wrt function calls: Work/job   3 us Speedup 1.74333  Efficiency 0.871664
+Wrt function calls: Work/job   4 us Speedup 1.81781  Efficiency 0.908906
+Wrt function calls: Work/job   5 us Speedup 1.85472  Efficiency 0.927362
+Wrt function calls: Work/job   6 us Speedup 1.8787   Efficiency 0.93935 
+Wrt function calls: Work/job   7 us Speedup 1.89795  Efficiency 0.948977
+Wrt function calls: Work/job   8 us Speedup 1.91064  Efficiency 0.95532 
+Wrt function calls: Work/job   9 us Speedup 1.92132  Efficiency 0.960658
+Wrt function calls: Work/job  10 us Speedup 1.92961  Efficiency 0.964804
+
+Performance for void(*)() calls (with allocate synchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.16095  Efficiency 0.0804749
+Wrt function calls: Work/job   1 us Speedup 1.34957  Efficiency 0.674786
+Wrt function calls: Work/job   2 us Speedup 1.64068  Efficiency 0.820339
+Wrt function calls: Work/job   3 us Speedup 1.73463  Efficiency 0.867314
+Wrt function calls: Work/job   4 us Speedup 1.81062  Efficiency 0.90531 
+Wrt function calls: Work/job   5 us Speedup 1.84869  Efficiency 0.924347
+Wrt function calls: Work/job   6 us Speedup 1.87544  Efficiency 0.937718
+Wrt function calls: Work/job   7 us Speedup 1.89552  Efficiency 0.947759
+Wrt function calls: Work/job   8 us Speedup 1.90793  Efficiency 0.953964
+Wrt function calls: Work/job   9 us Speedup 1.91889  Efficiency 0.959446
+Wrt function calls: Work/job  10 us Speedup 1.92727  Efficiency 0.963637
+
+Performance for void(*)() calls (with allocate unsynchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.164879 Efficiency 0.0824396
+Wrt function calls: Work/job   1 us Speedup 1.34819  Efficiency 0.674095
+Wrt function calls: Work/job   2 us Speedup 1.6464   Efficiency 0.8232  
+Wrt function calls: Work/job   3 us Speedup 1.73404  Efficiency 0.86702 
+Wrt function calls: Work/job   4 us Speedup 1.81877  Efficiency 0.909386
+Wrt function calls: Work/job   5 us Speedup 1.85598  Efficiency 0.92799 
+Wrt function calls: Work/job   6 us Speedup 1.88198  Efficiency 0.940989
+Wrt function calls: Work/job   7 us Speedup 1.89909  Efficiency 0.949547
+Wrt function calls: Work/job   8 us Speedup 1.91119  Efficiency 0.955596
+Wrt function calls: Work/job   9 us Speedup 1.92202  Efficiency 0.96101 
+Wrt function calls: Work/job  10 us Speedup 1.92945  Efficiency 0.964725
+
+Performance for std::function calls (w / o allocate) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.135392 Efficiency 0.0676958
+Wrt function calls: Work/job   1 us Speedup 1.35653  Efficiency 0.678265
+Wrt function calls: Work/job   2 us Speedup 1.64896  Efficiency 0.82448 
+Wrt function calls: Work/job   3 us Speedup 1.72082  Efficiency 0.86041 
+Wrt function calls: Work/job   4 us Speedup 1.81677  Efficiency 0.908386
+Wrt function calls: Work/job   5 us Speedup 1.84858  Efficiency 0.924291
+Wrt function calls: Work/job   6 us Speedup 1.87363  Efficiency 0.936816
+Wrt function calls: Work/job   7 us Speedup 1.8923   Efficiency 0.946148
+Wrt function calls: Work/job   8 us Speedup 1.90534  Efficiency 0.952672
+Wrt function calls: Work/job   9 us Speedup 1.91532  Efficiency 0.957659
+Wrt function calls: Work/job  10 us Speedup 1.92507  Efficiency 0.962536
+
+Performance for std::function calls (with allocate synchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.132797 Efficiency 0.0663987
+Wrt function calls: Work/job   1 us Speedup 1.34865  Efficiency 0.674327
+Wrt function calls: Work/job   2 us Speedup 1.63851  Efficiency 0.819255
+Wrt function calls: Work/job   3 us Speedup 1.72088  Efficiency 0.860438
+Wrt function calls: Work/job   4 us Speedup 1.81015  Efficiency 0.905076
+Wrt function calls: Work/job   5 us Speedup 1.84448  Efficiency 0.922241
+Wrt function calls: Work/job   6 us Speedup 1.86924  Efficiency 0.934622
+Wrt function calls: Work/job   7 us Speedup 1.88845  Efficiency 0.944224
+Wrt function calls: Work/job   8 us Speedup 1.90054  Efficiency 0.950268
+Wrt function calls: Work/job   9 us Speedup 1.91367  Efficiency 0.956835
+Wrt function calls: Work/job  10 us Speedup 1.92207  Efficiency 0.961035
+
+Performance for std::function calls (with allocate unsynchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.133097 Efficiency 0.0665483
+Wrt function calls: Work/job   1 us Speedup 1.35037  Efficiency 0.675186
+Wrt function calls: Work/job   2 us Speedup 1.64478  Efficiency 0.822388
+Wrt function calls: Work/job   3 us Speedup 1.7236   Efficiency 0.861798
+Wrt function calls: Work/job   4 us Speedup 1.80964  Efficiency 0.904819
+Wrt function calls: Work/job   5 us Speedup 1.84566  Efficiency 0.922832
+Wrt function calls: Work/job   6 us Speedup 1.87045  Efficiency 0.935224
+Wrt function calls: Work/job   7 us Speedup 1.88815  Efficiency 0.944075
+Wrt function calls: Work/job   8 us Speedup 1.90179  Efficiency 0.950896
+Wrt function calls: Work/job   9 us Speedup 1.913    Efficiency 0.956501
+Wrt function calls: Work/job  10 us Speedup 1.92189  Efficiency 0.960944
+
+Performance for Coro<> calls (w / o allocate) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.188869 Efficiency 0.0944345
+Wrt function calls: Work/job   1 us Speedup 1.40219  Efficiency 0.701096
+Wrt function calls: Work/job   2 us Speedup 1.67238  Efficiency 0.836191
+Wrt function calls: Work/job   3 us Speedup 1.77905  Efficiency 0.889524
+Wrt function calls: Work/job   4 us Speedup 1.83677  Efficiency 0.918386
+Wrt function calls: Work/job   5 us Speedup 1.87447  Efficiency 0.937236
+Wrt function calls: Work/job   6 us Speedup 1.9002   Efficiency 0.9501  
+Wrt function calls: Work/job   7 us Speedup 1.91767  Efficiency 0.958835
+Wrt function calls: Work/job   8 us Speedup 1.93123  Efficiency 0.965614
+Wrt function calls: Work/job   9 us Speedup 1.94228  Efficiency 0.971142
+Wrt function calls: Work/job  10 us Speedup 1.94926  Efficiency 0.974629
+
+Performance for Coro<> calls (with allocate synchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.175655 Efficiency 0.0878275
+Wrt function calls: Work/job   1 us Speedup 1.43474  Efficiency 0.717372
+Wrt function calls: Work/job   2 us Speedup 1.68747  Efficiency 0.843734
+Wrt function calls: Work/job   3 us Speedup 1.7802   Efficiency 0.8901  
+Wrt function calls: Work/job   4 us Speedup 1.8408   Efficiency 0.920398
+Wrt function calls: Work/job   5 us Speedup 1.86513  Efficiency 0.932563
+Wrt function calls: Work/job   6 us Speedup 1.88013  Efficiency 0.940066
+Wrt function calls: Work/job   7 us Speedup 1.89171  Efficiency 0.945854
+Wrt function calls: Work/job   8 us Speedup 1.92804  Efficiency 0.964022
+Wrt function calls: Work/job   9 us Speedup 1.93921  Efficiency 0.969607
+Wrt function calls: Work/job  10 us Speedup 1.94294  Efficiency 0.971468
+
+Performance for Coro<> calls (with allocate unsynchronized) on 2 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.17987  Efficiency 0.089935
+Wrt function calls: Work/job   1 us Speedup 1.44902  Efficiency 0.72451 
+Wrt function calls: Work/job   2 us Speedup 1.70364  Efficiency 0.851819
+Wrt function calls: Work/job   3 us Speedup 1.79394  Efficiency 0.89697 
+Wrt function calls: Work/job   4 us Speedup 1.84894  Efficiency 0.924471
+Wrt function calls: Work/job   5 us Speedup 1.86829  Efficiency 0.934143
+Wrt function calls: Work/job   6 us Speedup 1.88762  Efficiency 0.943812
+Wrt function calls: Work/job   7 us Speedup 1.89825  Efficiency 0.949126
+Wrt function calls: Work/job   8 us Speedup 1.93337  Efficiency 0.966685
+Wrt function calls: Work/job   9 us Speedup 1.94348  Efficiency 0.97174 
+Wrt function calls: Work/job  10 us Speedup 1.94884  Efficiency 0.97442 
+
+Running on 4 Threads
+
+
+Performance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95
+
+Performance for void(*)() calls (w / o allocate) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.128561 Efficiency 0.0321404
+Wrt function calls: Work/job   1 us Speedup 2.87428  Efficiency 0.718569
+Wrt function calls: Work/job   2 us Speedup 3.39478  Efficiency 0.848695
+Wrt function calls: Work/job   3 us Speedup 3.60235  Efficiency 0.900588
+Wrt function calls: Work/job   4 us Speedup 3.69748  Efficiency 0.924369
+Wrt function calls: Work/job   5 us Speedup 3.76255  Efficiency 0.940638
+Wrt function calls: Work/job   6 us Speedup 3.80512  Efficiency 0.95128 
+Wrt function calls: Work/job   7 us Speedup 3.83598  Efficiency 0.958995
+Wrt function calls: Work/job   8 us Speedup 3.8603   Efficiency 0.965075
+Wrt function calls: Work/job   9 us Speedup 3.87433  Efficiency 0.968584
+Wrt function calls: Work/job  10 us Speedup 3.89172  Efficiency 0.97293 
+
+Performance for void(*)() calls (with allocate synchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.190136 Efficiency 0.0475341
+Wrt function calls: Work/job   1 us Speedup 2.81102  Efficiency 0.702754
+Wrt function calls: Work/job   2 us Speedup 3.35653  Efficiency 0.839132
+Wrt function calls: Work/job   3 us Speedup 3.57684  Efficiency 0.894209
+Wrt function calls: Work/job   4 us Speedup 3.67653  Efficiency 0.919131
+Wrt function calls: Work/job   5 us Speedup 3.74051  Efficiency 0.935127
+Wrt function calls: Work/job   6 us Speedup 3.78782  Efficiency 0.946956
+Wrt function calls: Work/job   7 us Speedup 3.8288   Efficiency 0.957199
+Wrt function calls: Work/job   8 us Speedup 3.85363  Efficiency 0.963409
+Wrt function calls: Work/job   9 us Speedup 3.86726  Efficiency 0.966814
+Wrt function calls: Work/job  10 us Speedup 3.88546  Efficiency 0.971364
+
+Performance for void(*)() calls (with allocate unsynchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.163917 Efficiency 0.0409793
+Wrt function calls: Work/job   1 us Speedup 2.84814  Efficiency 0.712036
+Wrt function calls: Work/job   2 us Speedup 3.36541  Efficiency 0.841354
+Wrt function calls: Work/job   3 us Speedup 3.57662  Efficiency 0.894155
+Wrt function calls: Work/job   4 us Speedup 3.67955  Efficiency 0.919888
+Wrt function calls: Work/job   5 us Speedup 3.74493  Efficiency 0.936233
+Wrt function calls: Work/job   6 us Speedup 3.79479  Efficiency 0.948698
+Wrt function calls: Work/job   7 us Speedup 3.82523  Efficiency 0.956308
+Wrt function calls: Work/job   8 us Speedup 3.84806  Efficiency 0.962015
+Wrt function calls: Work/job   9 us Speedup 3.87253  Efficiency 0.968131
+Wrt function calls: Work/job  10 us Speedup 3.88684  Efficiency 0.971709
+
+Performance for std::function calls (w / o allocate) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.172618 Efficiency 0.0431544
+Wrt function calls: Work/job   1 us Speedup 2.87575  Efficiency 0.718937
+Wrt function calls: Work/job   2 us Speedup 3.37991  Efficiency 0.844977
+Wrt function calls: Work/job   3 us Speedup 3.57799  Efficiency 0.894499
+Wrt function calls: Work/job   4 us Speedup 3.6831   Efficiency 0.920775
+Wrt function calls: Work/job   5 us Speedup 3.74601  Efficiency 0.936503
+Wrt function calls: Work/job   6 us Speedup 3.78749  Efficiency 0.946873
+Wrt function calls: Work/job   7 us Speedup 3.82227  Efficiency 0.955566
+Wrt function calls: Work/job   8 us Speedup 3.84806  Efficiency 0.962014
+Wrt function calls: Work/job   9 us Speedup 3.8677   Efficiency 0.966925
+Wrt function calls: Work/job  10 us Speedup 3.88369  Efficiency 0.970924
+
+Performance for std::function calls (with allocate synchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.126671 Efficiency 0.0316677
+Wrt function calls: Work/job   1 us Speedup 2.80369  Efficiency 0.700922
+Wrt function calls: Work/job   2 us Speedup 3.33147  Efficiency 0.832866
+Wrt function calls: Work/job   3 us Speedup 3.55075  Efficiency 0.887687
+Wrt function calls: Work/job   4 us Speedup 3.65655  Efficiency 0.914138
+Wrt function calls: Work/job   5 us Speedup 3.72183  Efficiency 0.930458
+Wrt function calls: Work/job   6 us Speedup 3.77288  Efficiency 0.943219
+Wrt function calls: Work/job   7 us Speedup 3.80471  Efficiency 0.951178
+Wrt function calls: Work/job   8 us Speedup 3.83275  Efficiency 0.958187
+Wrt function calls: Work/job   9 us Speedup 3.85534  Efficiency 0.963836
+Wrt function calls: Work/job  10 us Speedup 3.8727   Efficiency 0.968175
+
+Performance for std::function calls (with allocate unsynchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.136306 Efficiency 0.0340765
+Wrt function calls: Work/job   1 us Speedup 2.80185  Efficiency 0.700461
+Wrt function calls: Work/job   2 us Speedup 3.336    Efficiency 0.834001
+Wrt function calls: Work/job   3 us Speedup 3.54749  Efficiency 0.886871
+Wrt function calls: Work/job   4 us Speedup 3.66249  Efficiency 0.915623
+Wrt function calls: Work/job   5 us Speedup 3.72561  Efficiency 0.931403
+Wrt function calls: Work/job   6 us Speedup 3.76729  Efficiency 0.941821
+Wrt function calls: Work/job   7 us Speedup 3.80992  Efficiency 0.95248 
+Wrt function calls: Work/job   8 us Speedup 3.83401  Efficiency 0.958503
+Wrt function calls: Work/job   9 us Speedup 3.8576   Efficiency 0.9644  
+Wrt function calls: Work/job  10 us Speedup 3.87113  Efficiency 0.967783
+
+Performance for Coro<> calls (w / o allocate) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.214488 Efficiency 0.0536221
+Wrt function calls: Work/job   1 us Speedup 2.96076  Efficiency 0.740189
+Wrt function calls: Work/job   2 us Speedup 3.43614  Efficiency 0.859034
+Wrt function calls: Work/job   3 us Speedup 3.62399  Efficiency 0.905998
+Wrt function calls: Work/job   4 us Speedup 3.72272  Efficiency 0.930681
+Wrt function calls: Work/job   5 us Speedup 3.7835   Efficiency 0.945876
+Wrt function calls: Work/job   6 us Speedup 3.82921  Efficiency 0.957303
+Wrt function calls: Work/job   7 us Speedup 3.85979  Efficiency 0.964947
+Wrt function calls: Work/job   8 us Speedup 3.88074  Efficiency 0.970186
+Wrt function calls: Work/job   9 us Speedup 3.90022  Efficiency 0.975054
+Wrt function calls: Work/job  10 us Speedup 3.9119   Efficiency 0.977974
+
+Performance for Coro<> calls (with allocate synchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.160419 Efficiency 0.0401047
+Wrt function calls: Work/job   1 us Speedup 2.50939  Efficiency 0.627348
+Wrt function calls: Work/job   2 us Speedup 3.13909  Efficiency 0.784773
+Wrt function calls: Work/job   3 us Speedup 3.38043  Efficiency 0.845108
+Wrt function calls: Work/job   4 us Speedup 3.5689   Efficiency 0.892226
+Wrt function calls: Work/job   5 us Speedup 3.63175  Efficiency 0.907938
+Wrt function calls: Work/job   6 us Speedup 3.66778  Efficiency 0.916944
+Wrt function calls: Work/job   7 us Speedup 3.69591  Efficiency 0.923977
+Wrt function calls: Work/job   8 us Speedup 3.82641  Efficiency 0.956602
+Wrt function calls: Work/job   9 us Speedup 3.85708  Efficiency 0.96427 
+Wrt function calls: Work/job  10 us Speedup 3.86988  Efficiency 0.967471
+
+Performance for Coro<> calls (with allocate unsynchronized) on 4 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.159561 Efficiency 0.0398903
+Wrt function calls: Work/job   1 us Speedup 2.58974  Efficiency 0.647435
+Wrt function calls: Work/job   2 us Speedup 3.19625  Efficiency 0.799062
+Wrt function calls: Work/job   3 us Speedup 3.4394   Efficiency 0.859849
+Wrt function calls: Work/job   4 us Speedup 3.60888  Efficiency 0.902221
+Wrt function calls: Work/job   5 us Speedup 3.66882  Efficiency 0.917204
+Wrt function calls: Work/job   6 us Speedup 3.70127  Efficiency 0.925317
+Wrt function calls: Work/job   7 us Speedup 3.73039  Efficiency 0.932597
+Wrt function calls: Work/job   8 us Speedup 3.853    Efficiency 0.96325 
+Wrt function calls: Work/job   9 us Speedup 3.87578  Efficiency 0.968944
+Wrt function calls: Work/job  10 us Speedup 3.89265  Efficiency 0.973162
+
+Running on 8 Threads
+
+
+Performance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95
+
+Performance for void(*)() calls (w / o allocate) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0678046 Efficiency 0.00847558
+Wrt function calls: Work/job   1 us Speedup 1.13549  Efficiency 0.141937
+Wrt function calls: Work/job   2 us Speedup 6.11357  Efficiency 0.764196
+Wrt function calls: Work/job   3 us Speedup 6.70825  Efficiency 0.838531
+Wrt function calls: Work/job   4 us Speedup 7.01155  Efficiency 0.876444
+Wrt function calls: Work/job   5 us Speedup 7.20684  Efficiency 0.900855
+Wrt function calls: Work/job   6 us Speedup 7.34355  Efficiency 0.917943
+Wrt function calls: Work/job   7 us Speedup 7.43094  Efficiency 0.928867
+Wrt function calls: Work/job   8 us Speedup 7.52022  Efficiency 0.940028
+Wrt function calls: Work/job   9 us Speedup 7.57338  Efficiency 0.946672
+Wrt function calls: Work/job  10 us Speedup 7.6046   Efficiency 0.950575
+
+Performance for void(*)() calls (with allocate synchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0693553 Efficiency 0.00866942
+Wrt function calls: Work/job   1 us Speedup 1.11864  Efficiency 0.13983 
+Wrt function calls: Work/job   2 us Speedup 6.00212  Efficiency 0.750264
+Wrt function calls: Work/job   3 us Speedup 6.6546   Efficiency 0.831824
+Wrt function calls: Work/job   4 us Speedup 6.94141  Efficiency 0.867677
+Wrt function calls: Work/job   5 us Speedup 7.14237  Efficiency 0.892796
+Wrt function calls: Work/job   6 us Speedup 7.29558  Efficiency 0.911947
+Wrt function calls: Work/job   7 us Speedup 7.40391  Efficiency 0.925489
+Wrt function calls: Work/job   8 us Speedup 7.47432  Efficiency 0.93429 
+Wrt function calls: Work/job   9 us Speedup 7.54621  Efficiency 0.943276
+Wrt function calls: Work/job  10 us Speedup 7.58     Efficiency 0.9475  
+Wrt function calls: Work/job  11 us Speedup 7.61723  Efficiency 0.952154
+
+Performance for void(*)() calls (with allocate unsynchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0649658 Efficiency 0.00812073
+Wrt function calls: Work/job   1 us Speedup 1.15154  Efficiency 0.143943
+Wrt function calls: Work/job   2 us Speedup 6.01334  Efficiency 0.751667
+Wrt function calls: Work/job   3 us Speedup 6.63434  Efficiency 0.829292
+Wrt function calls: Work/job   4 us Speedup 6.94759  Efficiency 0.868449
+Wrt function calls: Work/job   5 us Speedup 7.15982  Efficiency 0.894978
+Wrt function calls: Work/job   6 us Speedup 7.29936  Efficiency 0.91242 
+Wrt function calls: Work/job   7 us Speedup 7.40522  Efficiency 0.925652
+Wrt function calls: Work/job   8 us Speedup 7.47645  Efficiency 0.934556
+Wrt function calls: Work/job   9 us Speedup 7.5367   Efficiency 0.942087
+Wrt function calls: Work/job  10 us Speedup 7.57721  Efficiency 0.947151
+Wrt function calls: Work/job  11 us Speedup 7.6152   Efficiency 0.9519  
+
+Performance for std::function calls (w / o allocate) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0711965 Efficiency 0.00889956
+Wrt function calls: Work/job   1 us Speedup 1.11554  Efficiency 0.139442
+Wrt function calls: Work/job   2 us Speedup 4.60299  Efficiency 0.575374
+Wrt function calls: Work/job   3 us Speedup 6.70122  Efficiency 0.837652
+Wrt function calls: Work/job   4 us Speedup 7.02006  Efficiency 0.877508
+Wrt function calls: Work/job   5 us Speedup 7.20281  Efficiency 0.900351
+Wrt function calls: Work/job   6 us Speedup 7.32988  Efficiency 0.916235
+Wrt function calls: Work/job   7 us Speedup 7.43443  Efficiency 0.929304
+Wrt function calls: Work/job   8 us Speedup 7.50611  Efficiency 0.938264
+Wrt function calls: Work/job   9 us Speedup 7.56231  Efficiency 0.945288
+Wrt function calls: Work/job  10 us Speedup 7.59813  Efficiency 0.949766
+Wrt function calls: Work/job  11 us Speedup 7.64039  Efficiency 0.955049
+
+Performance for std::function calls (with allocate synchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0650913 Efficiency 0.00813642
+Wrt function calls: Work/job   1 us Speedup 1.14961  Efficiency 0.143701
+Wrt function calls: Work/job   2 us Speedup 5.93065  Efficiency 0.741332
+Wrt function calls: Work/job   3 us Speedup 6.58805  Efficiency 0.823507
+Wrt function calls: Work/job   4 us Speedup 6.90012  Efficiency 0.862515
+Wrt function calls: Work/job   5 us Speedup 7.11984  Efficiency 0.88998 
+Wrt function calls: Work/job   6 us Speedup 7.26397  Efficiency 0.907996
+Wrt function calls: Work/job   7 us Speedup 7.3678   Efficiency 0.920975
+Wrt function calls: Work/job   8 us Speedup 7.44161  Efficiency 0.930201
+Wrt function calls: Work/job   9 us Speedup 7.51299  Efficiency 0.939123
+Wrt function calls: Work/job  10 us Speedup 7.55622  Efficiency 0.944528
+Wrt function calls: Work/job  11 us Speedup 7.58746  Efficiency 0.948432
+Wrt function calls: Work/job  12 us Speedup 7.62879  Efficiency 0.953598
+
+Performance for std::function calls (with allocate unsynchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0723175 Efficiency 0.00903969
+Wrt function calls: Work/job   1 us Speedup 1.14098  Efficiency 0.142623
+Wrt function calls: Work/job   2 us Speedup 4.25256  Efficiency 0.53157 
+Wrt function calls: Work/job   3 us Speedup 6.57062  Efficiency 0.821328
+Wrt function calls: Work/job   4 us Speedup 6.91272  Efficiency 0.86409 
+Wrt function calls: Work/job   5 us Speedup 7.1173   Efficiency 0.889662
+Wrt function calls: Work/job   6 us Speedup 7.25326  Efficiency 0.906657
+Wrt function calls: Work/job   7 us Speedup 7.3625   Efficiency 0.920312
+Wrt function calls: Work/job   8 us Speedup 7.43659  Efficiency 0.929574
+Wrt function calls: Work/job   9 us Speedup 7.5057   Efficiency 0.938213
+Wrt function calls: Work/job  10 us Speedup 7.55559  Efficiency 0.944449
+Wrt function calls: Work/job  11 us Speedup 7.6043   Efficiency 0.950537
+
+Performance for Coro<> calls (w / o allocate) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0880228 Efficiency 0.0110028
+Wrt function calls: Work/job   1 us Speedup 1.41199  Efficiency 0.176499
+Wrt function calls: Work/job   2 us Speedup 6.41042  Efficiency 0.801303
+Wrt function calls: Work/job   3 us Speedup 6.91919  Efficiency 0.864899
+Wrt function calls: Work/job   4 us Speedup 7.19556  Efficiency 0.899445
+Wrt function calls: Work/job   5 us Speedup 7.36786  Efficiency 0.920982
+Wrt function calls: Work/job   6 us Speedup 7.49149  Efficiency 0.936437
+Wrt function calls: Work/job   7 us Speedup 7.5726   Efficiency 0.946575
+Wrt function calls: Work/job   8 us Speedup 7.63696  Efficiency 0.954619
+Wrt function calls: Work/job   9 us Speedup 7.68841  Efficiency 0.961051
+Wrt function calls: Work/job  10 us Speedup 7.71902  Efficiency 0.964877
+
+Performance for Coro<> calls (with allocate synchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0751467 Efficiency 0.00939334
+Wrt function calls: Work/job   1 us Speedup 1.22439  Efficiency 0.153049
+Wrt function calls: Work/job   2 us Speedup 5.1731   Efficiency 0.646637
+Wrt function calls: Work/job   3 us Speedup 5.91192  Efficiency 0.73899 
+Wrt function calls: Work/job   4 us Speedup 6.4926   Efficiency 0.811575
+Wrt function calls: Work/job   5 us Speedup 6.70691  Efficiency 0.838364
+Wrt function calls: Work/job   6 us Speedup 6.82964  Efficiency 0.853705
+Wrt function calls: Work/job   7 us Speedup 6.92736  Efficiency 0.86592 
+Wrt function calls: Work/job   8 us Speedup 7.35156  Efficiency 0.918944
+Wrt function calls: Work/job   9 us Speedup 7.42914  Efficiency 0.928643
+Wrt function calls: Work/job  10 us Speedup 7.49021  Efficiency 0.936277
+Wrt function calls: Work/job  11 us Speedup 7.53302  Efficiency 0.941628
+Wrt function calls: Work/job  12 us Speedup 7.55404  Efficiency 0.944255
+Wrt function calls: Work/job  13 us Speedup 7.60243  Efficiency 0.950303
+
+Performance for Coro<> calls (with allocate unsynchronized) on 8 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0748219 Efficiency 0.00935273
+Wrt function calls: Work/job   1 us Speedup 1.65094  Efficiency 0.206367
+Wrt function calls: Work/job   2 us Speedup 5.33893  Efficiency 0.667367
+Wrt function calls: Work/job   3 us Speedup 6.03008  Efficiency 0.75376 
+Wrt function calls: Work/job   4 us Speedup 6.59948  Efficiency 0.824935
+Wrt function calls: Work/job   5 us Speedup 6.81245  Efficiency 0.851557
+Wrt function calls: Work/job   6 us Speedup 6.9386   Efficiency 0.867325
+Wrt function calls: Work/job   7 us Speedup 6.9884   Efficiency 0.87355 
+Wrt function calls: Work/job   8 us Speedup 7.44012  Efficiency 0.930015
+Wrt function calls: Work/job   9 us Speedup 7.51642  Efficiency 0.939552
+Wrt function calls: Work/job  10 us Speedup 7.56357  Efficiency 0.945446
+Wrt function calls: Work/job  11 us Speedup 7.58986  Efficiency 0.948733
+Wrt function calls: Work/job  12 us Speedup 7.61648  Efficiency 0.952059
+
+Running on 16 Threads
+
+
+Performance: min work (in microsconds) per job so that efficiency is >0.85 or >0.95
+
+Performance for void(*)() calls (w / o allocate) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0483341 Efficiency 0.00302088
+Wrt function calls: Work/job   1 us Speedup 0.734704 Efficiency 0.045919
+Wrt function calls: Work/job   2 us Speedup 1.49828  Efficiency 0.0936426
+Wrt function calls: Work/job   3 us Speedup 2.30798  Efficiency 0.144249
+Wrt function calls: Work/job   4 us Speedup 3.21308  Efficiency 0.200818
+Wrt function calls: Work/job   5 us Speedup 4.20175  Efficiency 0.26261 
+Wrt function calls: Work/job   6 us Speedup 6.12209  Efficiency 0.382631
+Wrt function calls: Work/job   7 us Speedup 14.4351  Efficiency 0.902195
+Wrt function calls: Work/job   8 us Speedup 14.7053  Efficiency 0.919079
+Wrt function calls: Work/job   9 us Speedup 14.8337  Efficiency 0.927104
+Wrt function calls: Work/job  10 us Speedup 14.9667  Efficiency 0.935419
+Wrt function calls: Work/job  11 us Speedup 15.0646  Efficiency 0.941539
+Wrt function calls: Work/job  12 us Speedup 15.1413  Efficiency 0.94633 
+Wrt function calls: Work/job  13 us Speedup 15.2181  Efficiency 0.951129
+
+Performance for void(*)() calls (with allocate synchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0485392 Efficiency 0.0030337
+Wrt function calls: Work/job   1 us Speedup 0.728389 Efficiency 0.0455243
+Wrt function calls: Work/job   2 us Speedup 1.49329  Efficiency 0.0933304
+Wrt function calls: Work/job   3 us Speedup 2.33232  Efficiency 0.14577 
+Wrt function calls: Work/job   4 us Speedup 3.1713   Efficiency 0.198206
+Wrt function calls: Work/job   5 us Speedup 4.18487  Efficiency 0.261554
+Wrt function calls: Work/job   6 us Speedup 9.34967  Efficiency 0.584354
+Wrt function calls: Work/job   7 us Speedup 14.3108  Efficiency 0.894423
+Wrt function calls: Work/job   8 us Speedup 14.558   Efficiency 0.909875
+Wrt function calls: Work/job   9 us Speedup 14.7047  Efficiency 0.919044
+Wrt function calls: Work/job  10 us Speedup 14.8662  Efficiency 0.929136
+Wrt function calls: Work/job  11 us Speedup 14.9184  Efficiency 0.932397
+Wrt function calls: Work/job  12 us Speedup 15.0525  Efficiency 0.940783
+Wrt function calls: Work/job  13 us Speedup 15.1515  Efficiency 0.946968
+Wrt function calls: Work/job  14 us Speedup 15.2184  Efficiency 0.951151
+
+Performance for void(*)() calls (with allocate unsynchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0481349 Efficiency 0.00300843
+Wrt function calls: Work/job   1 us Speedup 0.727835 Efficiency 0.0454897
+Wrt function calls: Work/job   2 us Speedup 1.49973  Efficiency 0.0937333
+Wrt function calls: Work/job   3 us Speedup 2.32122  Efficiency 0.145076
+Wrt function calls: Work/job   4 us Speedup 3.21485  Efficiency 0.200928
+Wrt function calls: Work/job   5 us Speedup 4.33207  Efficiency 0.270754
+Wrt function calls: Work/job   6 us Speedup 8.57756  Efficiency 0.536098
+Wrt function calls: Work/job   7 us Speedup 14.3275  Efficiency 0.895466
+Wrt function calls: Work/job   8 us Speedup 14.5745  Efficiency 0.910909
+Wrt function calls: Work/job   9 us Speedup 14.7199  Efficiency 0.919992
+Wrt function calls: Work/job  10 us Speedup 14.8942  Efficiency 0.930887
+Wrt function calls: Work/job  11 us Speedup 14.9969  Efficiency 0.937305
+Wrt function calls: Work/job  12 us Speedup 15.0749  Efficiency 0.942179
+Wrt function calls: Work/job  13 us Speedup 15.1466  Efficiency 0.946665
+Wrt function calls: Work/job  14 us Speedup 15.2179  Efficiency 0.951119
+
+Performance for std::function calls (w / o allocate) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0474206 Efficiency 0.00296379
+Wrt function calls: Work/job   1 us Speedup 0.73214  Efficiency 0.0457587
+Wrt function calls: Work/job   2 us Speedup 1.47851  Efficiency 0.0924066
+Wrt function calls: Work/job   3 us Speedup 2.28024  Efficiency 0.142515
+Wrt function calls: Work/job   4 us Speedup 3.16948  Efficiency 0.198092
+Wrt function calls: Work/job   5 us Speedup 4.15193  Efficiency 0.259496
+Wrt function calls: Work/job   6 us Speedup 5.40325  Efficiency 0.337703
+Wrt function calls: Work/job   7 us Speedup 9.54994  Efficiency 0.596871
+Wrt function calls: Work/job   8 us Speedup 14.6715  Efficiency 0.916969
+Wrt function calls: Work/job   9 us Speedup 14.8356  Efficiency 0.927228
+Wrt function calls: Work/job  10 us Speedup 14.978   Efficiency 0.936122
+Wrt function calls: Work/job  11 us Speedup 15.0753  Efficiency 0.942209
+Wrt function calls: Work/job  12 us Speedup 15.1562  Efficiency 0.947264
+Wrt function calls: Work/job  13 us Speedup 15.218   Efficiency 0.951125
+
+Performance for std::function calls (with allocate synchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0468994 Efficiency 0.00293121
+Wrt function calls: Work/job   1 us Speedup 0.72213  Efficiency 0.0451332
+Wrt function calls: Work/job   2 us Speedup 1.47698  Efficiency 0.0923109
+Wrt function calls: Work/job   3 us Speedup 2.27315  Efficiency 0.142072
+Wrt function calls: Work/job   4 us Speedup 3.1377   Efficiency 0.196106
+Wrt function calls: Work/job   5 us Speedup 4.11009  Efficiency 0.256881
+Wrt function calls: Work/job   6 us Speedup 5.54152  Efficiency 0.346345
+Wrt function calls: Work/job   7 us Speedup 10.4884  Efficiency 0.655524
+Wrt function calls: Work/job   8 us Speedup 14.4184  Efficiency 0.901148
+Wrt function calls: Work/job   9 us Speedup 14.528   Efficiency 0.908003
+Wrt function calls: Work/job  10 us Speedup 14.7881  Efficiency 0.924255
+Wrt function calls: Work/job  11 us Speedup 14.7911  Efficiency 0.924443
+Wrt function calls: Work/job  12 us Speedup 14.9992  Efficiency 0.937449
+Wrt function calls: Work/job  13 us Speedup 15.0905  Efficiency 0.943156
+Wrt function calls: Work/job  14 us Speedup 15.1268  Efficiency 0.945425
+Wrt function calls: Work/job  15 us Speedup 15.2045  Efficiency 0.950281
+
+Performance for std::function calls (with allocate unsynchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0474146 Efficiency 0.00296341
+Wrt function calls: Work/job   1 us Speedup 0.7172   Efficiency 0.044825
+Wrt function calls: Work/job   2 us Speedup 1.47326  Efficiency 0.0920789
+Wrt function calls: Work/job   3 us Speedup 2.26944  Efficiency 0.14184 
+Wrt function calls: Work/job   4 us Speedup 3.22499  Efficiency 0.201562
+Wrt function calls: Work/job   5 us Speedup 4.04408  Efficiency 0.252755
+Wrt function calls: Work/job   6 us Speedup 5.60286  Efficiency 0.350178
+Wrt function calls: Work/job   7 us Speedup 11.46    Efficiency 0.716248
+Wrt function calls: Work/job   8 us Speedup 14.4645  Efficiency 0.904031
+Wrt function calls: Work/job   9 us Speedup 14.6401  Efficiency 0.915009
+Wrt function calls: Work/job  10 us Speedup 14.7942  Efficiency 0.92464 
+Wrt function calls: Work/job  11 us Speedup 14.8968  Efficiency 0.931053
+Wrt function calls: Work/job  12 us Speedup 14.9814  Efficiency 0.936338
+Wrt function calls: Work/job  13 us Speedup 15.0773  Efficiency 0.942332
+Wrt function calls: Work/job  14 us Speedup 15.1027  Efficiency 0.943921
+Wrt function calls: Work/job  15 us Speedup 15.2156  Efficiency 0.950976
+
+Performance for Coro<> calls (w / o allocate) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0522262 Efficiency 0.00326414
+Wrt function calls: Work/job   1 us Speedup 0.809795 Efficiency 0.0506122
+Wrt function calls: Work/job   2 us Speedup 1.70315  Efficiency 0.106447
+Wrt function calls: Work/job   3 us Speedup 2.78528  Efficiency 0.17408 
+Wrt function calls: Work/job   4 us Speedup 4.55693  Efficiency 0.284808
+Wrt function calls: Work/job   5 us Speedup 13.2461  Efficiency 0.827879
+Wrt function calls: Work/job   6 us Speedup 14.5523  Efficiency 0.90952 
+Wrt function calls: Work/job   7 us Speedup 14.8464  Efficiency 0.927898
+Wrt function calls: Work/job   8 us Speedup 15.002   Efficiency 0.937627
+Wrt function calls: Work/job   9 us Speedup 15.1563  Efficiency 0.947267
+Wrt function calls: Work/job  10 us Speedup 15.2715  Efficiency 0.95447 
+
+Performance for Coro<> calls (with allocate synchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0488333 Efficiency 0.00305208
+Wrt function calls: Work/job   1 us Speedup 0.753762 Efficiency 0.0471101
+Wrt function calls: Work/job   2 us Speedup 1.58787  Efficiency 0.0992418
+Wrt function calls: Work/job   3 us Speedup 2.53453  Efficiency 0.158408
+Wrt function calls: Work/job   4 us Speedup 4.05801  Efficiency 0.253626
+Wrt function calls: Work/job   5 us Speedup 9.89268  Efficiency 0.618293
+Wrt function calls: Work/job   6 us Speedup 11.979   Efficiency 0.748687
+Wrt function calls: Work/job   7 us Speedup 12.2515  Efficiency 0.765718
+Wrt function calls: Work/job   8 us Speedup 13.6859  Efficiency 0.85537 
+Wrt function calls: Work/job   9 us Speedup 13.5132  Efficiency 0.844575
+Wrt function calls: Work/job  10 us Speedup 14.1065  Efficiency 0.881655
+Wrt function calls: Work/job  11 us Speedup 14.3181  Efficiency 0.894883
+Wrt function calls: Work/job  12 us Speedup 14.3731  Efficiency 0.898321
+Wrt function calls: Work/job  13 us Speedup 14.5337  Efficiency 0.908354
+Wrt function calls: Work/job  14 us Speedup 14.5159  Efficiency 0.907245
+Wrt function calls: Work/job  15 us Speedup 14.5718  Efficiency 0.910739
+Wrt function calls: Work/job  16 us Speedup 14.7977  Efficiency 0.924855
+Wrt function calls: Work/job  17 us Speedup 14.7077  Efficiency 0.919231
+Wrt function calls: Work/job  18 us Speedup 14.7809  Efficiency 0.923805
+Wrt function calls: Work/job  19 us Speedup 14.8298  Efficiency 0.926863
+Wrt function calls: Work/job  20 us Speedup 14.9318  Efficiency 0.933237
+Wrt function calls: Work/job  21 us Speedup 14.9923  Efficiency 0.93702 
+Wrt function calls: Work/job  22 us Speedup 14.9179  Efficiency 0.932366
+Wrt function calls: Work/job  23 us Speedup 14.9996  Efficiency 0.937477
+Wrt function calls: Work/job  24 us Speedup 15.068   Efficiency 0.941753
+Wrt function calls: Work/job  25 us Speedup 14.9982  Efficiency 0.937388
+Wrt function calls: Work/job  26 us Speedup 15.0674  Efficiency 0.941714
+Wrt function calls: Work/job  27 us Speedup 15.1455  Efficiency 0.946594
+Wrt function calls: Work/job  28 us Speedup 15.1421  Efficiency 0.94638 
+Wrt function calls: Work/job  29 us Speedup 15.2368  Efficiency 0.952297
+
+Performance for Coro<> calls (with allocate unsynchronized) on 16 threads
+
+Wrt function calls: Work/job   0 us Speedup 0.0511224 Efficiency 0.00319515
+Wrt function calls: Work/job   1 us Speedup 0.770137 Efficiency 0.0481335
+Wrt function calls: Work/job   2 us Speedup 1.66119  Efficiency 0.103824
+Wrt function calls: Work/job   3 us Speedup 2.65689  Efficiency 0.166055
+Wrt function calls: Work/job   4 us Speedup 4.33707  Efficiency 0.271067
+Wrt function calls: Work/job   5 us Speedup 11.7965  Efficiency 0.737279
+Wrt function calls: Work/job   6 us Speedup 12.3418  Efficiency 0.771363
+Wrt function calls: Work/job   7 us Speedup 12.6411  Efficiency 0.79007 
+Wrt function calls: Work/job   8 us Speedup 14.0042  Efficiency 0.875264
+Wrt function calls: Work/job   9 us Speedup 14.1253  Efficiency 0.882833
+Wrt function calls: Work/job  10 us Speedup 14.3837  Efficiency 0.898983
+Wrt function calls: Work/job  11 us Speedup 14.5284  Efficiency 0.908024
+Wrt function calls: Work/job  12 us Speedup 14.5319  Efficiency 0.908243
+Wrt function calls: Work/job  13 us Speedup 14.6297  Efficiency 0.914354
+Wrt function calls: Work/job  14 us Speedup 14.855   Efficiency 0.928439
+Wrt function calls: Work/job  15 us Speedup 14.8684  Efficiency 0.929273
+Wrt function calls: Work/job  16 us Speedup 14.86    Efficiency 0.928751
+Wrt function calls: Work/job  17 us Speedup 14.9067  Efficiency 0.931666
+Wrt function calls: Work/job  18 us Speedup 14.9839  Efficiency 0.936493
+Wrt function calls: Work/job  19 us Speedup 14.9799  Efficiency 0.936241
+Wrt function calls: Work/job  20 us Speedup 15.0417  Efficiency 0.940106
+Wrt function calls: Work/job  21 us Speedup 15.1193  Efficiency 0.944954
+Wrt function calls: Work/job  22 us Speedup 15.1386  Efficiency 0.946161
+Wrt function calls: Work/job  23 us Speedup 15.1715  Efficiency 0.94822 
+Wrt function calls: Work/job  24 us Speedup 15.2238  Efficiency 0.95149 
